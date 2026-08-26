@@ -37,7 +37,9 @@ export function ReportsTable({ reports }: { reports: PanelReportRow[] }) {
                 to={`/reportes/${report.id}`}
                 className="font-medium text-primary hover:underline"
               >
-                #{report.id}
+                {/* Se lo nombra por su número de municipio; el id va en la
+                    URL, que es donde importa que sea único en toda la base. */}
+                #{report.number ?? report.id}
               </Link>
             </TableCell>
             <TableCell>{messages.reports.category[report.category]}</TableCell>

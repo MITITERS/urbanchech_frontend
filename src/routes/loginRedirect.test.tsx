@@ -101,13 +101,36 @@ describe('tabla de acceso', () => {
     expect(current).toHaveAttribute('aria-current', 'page')
   })
 
-  it('el administrador no entra al listado de reportes, que es del agente', async () => {
+  it('el menú del administrador va de lo general a lo específico', async () => {
     await loginAs(ROLES.PLATFORM_ADMIN, '/')
     await screen.findByRole('link', { name: messages.nav.municipalities })
 
-    // La API del panel le responde 403: la sección directamente no es suya.
+    const labels = screen.getAllByRole('link').map((link) => link.textContent?.trim())
+
+    expect(labels).toEqual([
+      messages.nav.municipalities,
+      messages.nav.agents,
+      messages.nav.validators,
+    ])
+  })
+
+  it('el administrador no tiene el módulo de reportes', async () => {
+    // Los mira por municipalidad, desde la ficha de cada una: un listado global
+    // suelto sería una segunda puerta a lo mismo.
+    await loginAs(ROLES.PLATFORM_ADMIN, '/')
+    await screen.findByRole('link', { name: messages.nav.municipalities })
+
     expect(
       screen.queryByRole('link', { name: messages.nav.reports }),
     ).not.toBeInTheDocument()
+  })
+
+  it('el agente ve su pantalla de trabajo primero', async () => {
+    await loginAs(ROLES.MUNICIPAL_AGENT, '/')
+    await screen.findByRole('link', { name: messages.nav.reports })
+
+    const labels = screen.getAllByRole('link').map((link) => link.textContent?.trim())
+
+    expect(labels).toEqual([messages.nav.reports, messages.nav.validators])
   })
 })

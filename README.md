@@ -186,6 +186,38 @@ ningún entorno, y el contenedor de desarrollo puede hablarle al servicio
 `django` por la red interna de Compose. Si algún despliegue necesita apuntar a
 otro origen, `VITE_API_URL` sigue estando disponible.
 
+### El reporte se nombra por su número de municipio
+
+En pantalla —la tabla, el encabezado del detalle, el popup del mapa— el reporte
+se muestra como `#{number}`, que es su número **dentro de su municipalidad** y
+como lo nombran el vecino y el municipio. Los enlaces y las llamadas a la API
+siguen usando el `id`, que es lo único único en toda la base.
+
+El `?? report.id` de esos tres lugares es un resguardo para un reporte sin
+numerar, que hoy no puede existir: el backend lo asigna al crear.
+
+### El proxy preserva el `Host` (y por eso se ven las fotos)
+
+Las tres reglas del proxy —`/api`, `/_allauth`, `/media`— van **sin
+`changeOrigin`**, y no es un olvido.
+
+DRF arma las URLs absolutas de los archivos subidos con `build_absolute_uri()`,
+o sea a partir del header `Host`. Con `changeOrigin: true` el backend recibe el
+host del destino y el detalle de un reporte responde
+`http://django:8000/media/...`: un host que solo existe dentro de la red de
+Docker. El navegador no lo resuelve y **las fotos quedan en gris**, sin error en
+consola ni request fallida en la API.
+
+Preservar el `Host` es además lo que hace verdadero el "un solo origen": la
+respuesta trae `http://localhost:5173/media/...` y la sirve el mismo proxy.
+
+La contrapartida es que el `Host` del navegador tiene que estar en el
+`ALLOWED_HOSTS` de Django. En local se resuelve con `DJANGO_ALLOWED_HOSTS`, que
+ya existía para el mismo tipo de caso (probar desde un dispositivo en la LAN).
+
+Hay un test que lo cubre (`src/test/viteProxy.test.ts`), porque el fallo es
+silencioso y `changeOrigin: true` es lo que uno escribe por reflejo.
+
 ### Almacenamiento del token: `localStorage`
 
 El backend usa django-allauth en modo _headless app_, que no setea cookie
@@ -218,10 +250,49 @@ El panel solo admite `ADMIN_PLATAFORMA` y `AGENTE_MUNICIPAL`. Cualquier otro rol
 con sesión válida ve la pantalla de permisos insuficientes, no una redirección
 silenciosa: rebotarlo al login parecería una contraseña mal puesta.
 
+Los dos roles llegan a todo lo que les corresponde; lo que cambia es el alcance
+de los datos, y ese recorte lo hace el backend, no la navegación. `ROUTE_ACCESS`
+es la única tabla de acceso, y hoy dice:
+
+| Ruta                           | Quién   |
+| ------------------------------ | ------- |
+| `/reportes` (listado)          | agente  |
+| `/reportes/:id` (detalle)      | los dos |
+| `/validadores`                 | los dos |
+| `/municipalidades`, `/agentes` | admin   |
+
+La única entrada `exact` de la tabla es el listado de reportes, justamente para
+separarlo del detalle: el admin no tiene un listado global —mira los reportes por
+municipalidad— pero sí abre el detalle, que es a donde lleva esa tabla. Gana la
+primera coincidencia, así que la entrada exacta va antes que la de prefijo.
+
 La traducción de los valores que manda la API (`admin_plataforma`,
 `agente_municipal`, `validador`, `ciudadano`) a las constantes del panel vive en
 un único lugar: `ROLE_BY_API_VALUE` en `src/api/auth.ts`. Un valor desconocido
 degrada a `CITIZEN`, que es el rol con menos privilegios.
+
+### Validadores: una pantalla, dos alcances
+
+`/validadores` la comparten los dos roles del panel porque hacen lo mismo; lo
+único que cambia es el alcance y de dónde sale la municipalidad:
+
+|                         | Agente municipal        | Admin de plataforma        |
+| ----------------------- | ----------------------- | -------------------------- |
+| Ve                      | los de su municipalidad | los de todas, con filtro   |
+| Al dar de alta          | se le asigna la suya    | la elige, y es obligatoria |
+| Columna «Municipalidad» | no (sería constante)    | sí                         |
+
+La ramificación es por rol dentro de `ValidatorsPage`, y no dos páginas: la
+tabla, la baja lógica y la reactivación son idénticas, y duplicarlas era
+garantizar que se fueran separando.
+
+`ValidatorFormDialog` decide si dibuja el selector por la prop `municipalities`:
+si llega la lista hay selector y el campo es obligatorio; si no llega, el backend
+asigna la del agente autenticado. No mira el rol por su cuenta para que el mismo
+componente sirva en cualquier contexto.
+
+El agente **no** pide `/api/municipalities/`: no elige municipalidad y además la
+API se la respondería con `403`. Por eso `useMunicipalities()` acepta `enabled`.
 
 ### Alta de municipalidad: provincia → ciudad → radio
 
@@ -244,12 +315,59 @@ externo esté arriba:
 - Si no contesta el de localidades, el campo de ciudad pasa a texto libre y el
   centro se marca haciendo clic en el mapa.
 
+### El admin no tiene módulo de reportes: los ve por municipalidad
+
+`/reportes` —el listado global— es del agente municipal. El administrador de la
+plataforma llega a los reportes desde la ficha de cada municipalidad, que es
+donde tienen contexto: un listado global suelto sería una segunda puerta a lo
+mismo, con la jurisdicción como una columna más en vez de como el marco.
+
+Sí abre el **detalle** de un reporte (`/reportes/:id`), que es a donde lleva esa
+tabla y donde viven las acciones de estado. Esa diferencia entre listado y
+detalle es lo que hace que `ROUTE_ACCESS` tenga una entrada `exact`: la primera
+coincidencia gana, así que la entrada exacta del listado va antes que la del
+detalle.
+
+### El «volver» del detalle depende del rol
+
+Los dos roles llegan al detalle de un reporte desde lugares distintos, así que el
+botón de volver no puede ser fijo: el agente viene del listado, que es suyo; el
+administrador viene de la ficha de una municipalidad. Mandarlo al listado —que es
+lo que hacía— lo dejaba en «permisos insuficientes», y llegando desde ahí no
+tenía forma de volver.
+
+Para el admin el destino sale de `report.municipality`, que por eso viaja en el
+detalle del panel. Mientras el reporte carga, el botón apunta al listado de
+municipalidades y se afina cuando llega la jurisdicción.
+
+### La pantalla de permisos insuficientes tiene dos casos
+
+No es lo mismo una cuenta que **no opera el panel** que una que sí lo opera y
+entró a una sección de otro rol:
+
+|         | Ciudadano o validador     | Personal del panel             |
+| ------- | ------------------------- | ------------------------------ |
+| Mensaje | «usá la aplicación móvil» | «esta sección no es de tu rol» |
+| Salida  | cerrar sesión             | volver a su sección            |
+
+Decirle a un administrador que use la app móvil es falso, y ofrecerle solo
+cerrar sesión lo deja sin salida — que es lo que pasaba al llegar ahí por el
+historial del navegador.
+
+### Orden del menú
+
+Una sola lista para los dos roles, ordenada para que las dos lecturas salgan
+bien. El admin ve **municipalidades → agentes → validadores**: de lo más general
+a lo más específico, que es el orden en que se dan de alta. El agente ve
+**reportes → validadores**, con su pantalla de trabajo primero. Reportes va en
+el medio de la lista para que el filtro por rol produzca las dos.
+
 ### El administrador de plataforma ve reportes por municipio
 
-Es la única lectura del panel que cruza jurisdicciones, y está acotada al rol
+La vista dentro de cada municipalidad sigue existiendo y está acotada al rol
 `ADMIN_PLATAFORMA`: entrar a una municipalidad muestra sus reportes en lista y
-en mapa, igual que la app móvil. El agente municipal sigue viendo solo lo suyo
-y recibe `403` si intenta esa ruta.
+en mapa, igual que la app móvil. Es la lectura en contexto de un municipio; el
+listado de `/reportes` es la de gestión.
 
 El mapa dibuja además el área de cobertura del municipio, porque el círculo y
 los puntos juntos explican por qué esos reportes y no otros cayeron ahí.

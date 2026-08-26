@@ -7,7 +7,13 @@ import { ReportFilters } from './components/ReportFilters'
 import { ReportsTable } from './components/ReportsTable'
 import { useReportFilters } from './hooks/useReportFilters'
 
-/** US-012 — pantalla principal del panel: listado y filtros de reportes. */
+/**
+ * US-012 — pantalla principal del panel: listado y filtros de reportes.
+ *
+ * Es del agente municipal, y muestra los de su jurisdicción. El administrador
+ * de la plataforma no tiene un listado global: mira los reportes por
+ * municipalidad, desde la ficha de cada una.
+ */
 export function ReportsPage() {
   const { filters, update, clear, isFiltered, orderings } = useReportFilters()
   const query = useReports(filters)

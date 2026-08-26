@@ -11,11 +11,20 @@ interface NavItem {
   icon: typeof FileText
 }
 
+/**
+ * Orden del menú, pensado para los dos roles a la vez.
+ *
+ * El admin ve municipalidades → agentes → validadores: de lo más general a lo
+ * más específico, que es como se dan de alta. El agente ve reportes →
+ * validadores, con su pantalla de trabajo primero. Reportes va en el medio para
+ * que las dos lecturas salgan bien de una sola lista: el filtro por rol lo saca
+ * del menú del admin, que los mira por municipalidad.
+ */
 const NAV_ITEMS: readonly NavItem[] = [
-  { to: '/reportes', label: messages.nav.reports, icon: FileText },
-  { to: '/validadores', label: messages.nav.validators, icon: Users },
   { to: '/municipalidades', label: messages.nav.municipalities, icon: Building2 },
   { to: '/agentes', label: messages.nav.agents, icon: ShieldCheck },
+  { to: '/reportes', label: messages.nav.reports, icon: FileText },
+  { to: '/validadores', label: messages.nav.validators, icon: Users },
 ]
 
 export function Sidebar({ role }: { role: Role }) {

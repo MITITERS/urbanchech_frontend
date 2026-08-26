@@ -130,6 +130,7 @@ export const messages = {
   },
   reportDetail: {
     backToList: 'Volver al listado',
+    backToMunicipality: 'Volver a la municipalidad',
     notFound: 'Ese reporte no existe o no pertenece a tu municipio.',
     description: 'Descripción',
     location: 'Ubicación',
@@ -181,8 +182,15 @@ export const messages = {
     title: 'Validadores',
     description:
       'Personal habilitado para verificar en terreno si un reporte corresponde a un problema real. Se dan de alta en tu municipalidad.',
+    adminDescription:
+      'Personal habilitado para verificar en terreno si un reporte corresponde a un problema real. Elegí en qué municipalidad se da de alta cada uno.',
+    noMunicipalities: 'Registrá una municipalidad antes de dar de alta validadores.',
     create: 'Dar de alta un validador',
     createTitle: 'Nuevo validador',
+    municipality: 'Municipalidad',
+    municipalityPlaceholder: 'Elegí una municipalidad',
+    filterByMunicipality: 'Filtrar por municipalidad',
+    allMunicipalities: 'Todas las municipalidades',
     name: 'Nombre',
     email: 'Correo electrónico',
     temporaryPassword: 'Contraseña temporal',
@@ -194,6 +202,7 @@ export const messages = {
     inactive: 'Inactivo',
     pendingPassword: 'Contraseña temporal pendiente',
     empty: 'Todavía no diste de alta ningún validador.',
+    emptyForMunicipality: 'Esta municipalidad todavía no tiene validadores.',
     created: 'Validador dado de alta.',
     deactivate: 'Desactivar',
     activate: 'Reactivar',
@@ -254,6 +263,11 @@ export const messages = {
     title: 'Permisos insuficientes',
     description:
       'Esta aplicación es de uso exclusivo del personal municipal. Si sos ciudadano o validador, usá la aplicación móvil de UrbanCheck.',
+    // Para quien sí opera el panel pero entró a una sección de otro rol.
+    sectionTitle: 'Esta sección no es de tu rol',
+    sectionDescription:
+      'Tu cuenta opera el panel, pero esta pantalla pertenece a otro rol. Volvé a tu sección para seguir trabajando.',
+    goHome: 'Volver a mi sección',
     logout: 'Cerrar sesión',
   },
   notFound: {

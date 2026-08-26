@@ -29,10 +29,16 @@ async function fetchMunicipalities(): Promise<MunicipalityDetail[]> {
   return data.results
 }
 
-export function useMunicipalities() {
+/**
+ * `enabled` existe para la pantalla de validadores, que la comparten los dos
+ * roles: el agente no elige municipalidad, así que no tiene por qué pedir la
+ * lista —y además la API se la respondería con 403.
+ */
+export function useMunicipalities({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: municipalityKeys.list(),
     queryFn: fetchMunicipalities,
+    enabled,
   })
 }
 

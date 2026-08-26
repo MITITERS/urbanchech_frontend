@@ -28,6 +28,8 @@ export interface MunicipalityPayload {
 /** Minimal payload the coverage map needs for one marker. */
 export interface MunicipalityReportMarker {
   id: number
+  /** Número dentro de la municipalidad: es como lo nombra el popup. */
+  number: number | null
   category: ReportCategory
   status: ReportStatus
   latitude: string

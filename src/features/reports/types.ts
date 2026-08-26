@@ -1,3 +1,5 @@
+import type { Municipality } from '@/types/auth'
+
 /** The six statuses of the system, with the exact values the API uses. */
 export const REPORT_STATUSES = {
   PENDING_VALIDATION: 'pendiente_validacion',
@@ -49,6 +51,11 @@ export interface ReportAuthor {
 
 export interface PanelReportRow {
   id: number
+  /**
+   * Número del reporte **dentro de su municipalidad**: es como lo nombran el
+   * vecino y el municipio. El `id` sigue siendo lo que va en las URLs.
+   */
+  number: number | null
   category: ReportCategory
   status: ReportStatus
   created_at: string
@@ -57,6 +64,8 @@ export interface PanelReportRow {
   longitude: string | null
   like_count: number
   operative_area: string | null
+  /** Jurisdicción del reporte. La necesita el admin para distinguir filas. */
+  municipality: Municipality | null
   author: ReportAuthor
 }
 
@@ -107,6 +116,10 @@ export interface StatusHistoryEntry {
 
 export interface PanelReportDetail {
   id: number
+  /** Número dentro de su municipalidad: es como se lo nombra en pantalla. */
+  number: number | null
+  /** A dónde vuelve el admin, que llega acá desde la ficha de un municipio. */
+  municipality: Municipality | null
   photo: string | null
   description: string
   category: ReportCategory

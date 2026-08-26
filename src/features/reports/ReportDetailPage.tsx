@@ -4,6 +4,8 @@ import { QueryState } from '@/components/common/QueryState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { messages } from '@/config/messages'
+import { useAuth } from '@/hooks/useAuth'
+import { ROLES } from '@/types/auth'
 import { formatDateTime } from '@/lib/format'
 import { useReportDetail } from './api/reportDetail'
 import { ReportMap } from './components/ReportMap'
@@ -18,13 +20,27 @@ export function ReportDetailPage() {
   const reportId = Number(id)
   const query = useReportDetail(reportId)
   const report = query.data
+  const { role } = useAuth()
+  // Los dos roles llegan a esta pantalla desde lugares distintos, así que el
+  // «volver» no puede ser fijo: el agente viene del listado, que es suyo; el
+  // admin viene de la ficha de una municipalidad, y el listado le da
+  // «permisos insuficientes».
+  const back =
+    role === ROLES.PLATFORM_ADMIN
+      ? {
+          to: report?.municipality
+            ? `/municipalidades/${report.municipality.id}`
+            : '/municipalidades',
+          label: messages.reportDetail.backToMunicipality,
+        }
+      : { to: '/reportes', label: messages.reportDetail.backToList }
 
   return (
     <div className="space-y-6">
       <Button asChild variant="ghost">
-        <Link to="/reportes">
+        <Link to={back.to}>
           <ArrowLeft className="size-4" aria-hidden />
-          {messages.reportDetail.backToList}
+          {back.label}
         </Link>
       </Button>
 
@@ -41,7 +57,8 @@ export function ReportDetailPage() {
                 <CardHeader className="flex flex-row items-start justify-between gap-4">
                   <div className="space-y-2">
                     <CardTitle>
-                      #{report.id} · {messages.reports.category[report.category]}
+                      #{report.number ?? report.id} ·{' '}
+                      {messages.reports.category[report.category]}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
                       {formatDateTime(report.created_at)} ·{' '}

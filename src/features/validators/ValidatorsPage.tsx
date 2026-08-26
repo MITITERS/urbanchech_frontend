@@ -13,14 +13,44 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { messages } from '@/config/messages'
+import { useMunicipalities } from '@/features/platform-admin/api/municipalities'
+import { useAuth } from '@/hooks/useAuth'
+import { ROLES } from '@/types/auth'
 import { useSetValidatorActive, useValidators } from './api/validators'
 import { ValidatorFormDialog } from './components/ValidatorFormDialog'
 import type { Validator } from './types'
 
-/** US-035 — alta, listado y baja lógica de validadores. */
+/** Valor del filtro cuando no hay municipalidad elegida. */
+const ALL_MUNICIPALITIES = 'all'
+
+/**
+ * US-035 — alta, listado y baja lógica de validadores.
+ *
+ * La misma pantalla para los dos roles del panel, porque hacen lo mismo; lo
+ * único que cambia es el alcance. El agente ve los de su municipalidad y las
+ * altas caen ahí sin que pueda elegir. El admin no está acotado a ninguna: ve
+ * los de todas, puede filtrar, y elige la municipalidad en cada alta.
+ */
 export function ValidatorsPage() {
-  const query = useValidators()
+  const { role } = useAuth()
+  const isAdmin = role === ROLES.PLATFORM_ADMIN
+  const [municipalityFilter, setMunicipalityFilter] = useState(ALL_MUNICIPALITIES)
+
+  // Solo el admin necesita la lista: es el único que elige municipalidad.
+  const municipalities = useMunicipalities({ enabled: isAdmin })
+  const query = useValidators(
+    isAdmin && municipalityFilter !== ALL_MUNICIPALITIES
+      ? { municipalityId: Number(municipalityFilter) }
+      : {},
+  )
   const setActive = useSetValidatorActive()
   const [pendingDeactivation, setPendingDeactivation] = useState<Validator | null>(null)
 
@@ -39,10 +69,38 @@ export function ValidatorsPage() {
           <div className="space-y-1">
             <CardTitle>{messages.validators.title}</CardTitle>
             <p className="text-sm text-muted-foreground">
-              {messages.validators.description}
+              {!isAdmin
+                ? messages.validators.description
+                : municipalities.data?.length === 0
+                  ? messages.validators.noMunicipalities
+                  : messages.validators.adminDescription}
             </p>
           </div>
-          <ValidatorFormDialog />
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Select value={municipalityFilter} onValueChange={setMunicipalityFilter}>
+                <SelectTrigger
+                  className="w-56"
+                  aria-label={messages.validators.filterByMunicipality}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_MUNICIPALITIES}>
+                    {messages.validators.allMunicipalities}
+                  </SelectItem>
+                  {municipalities.data?.map((municipality) => (
+                    <SelectItem key={municipality.id} value={String(municipality.id)}>
+                      {municipality.city} — {municipality.province}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            <ValidatorFormDialog
+              municipalities={isAdmin ? (municipalities.data ?? []) : undefined}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <QueryState
@@ -51,13 +109,19 @@ export function ValidatorsPage() {
             error={query.error}
             onRetry={() => void query.refetch()}
             isEmpty={query.data?.length === 0}
-            emptyMessage={messages.validators.empty}
+            emptyMessage={
+              municipalityFilter === ALL_MUNICIPALITIES
+                ? messages.validators.empty
+                : messages.validators.emptyForMunicipality
+            }
           >
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>{messages.validators.name}</TableHead>
                   <TableHead>{messages.validators.email}</TableHead>
+                  {/* Para el agente es siempre la suya: no aporta una columna. */}
+                  {isAdmin && <TableHead>{messages.validators.municipality}</TableHead>}
                   <TableHead className="w-40">{messages.validators.state}</TableHead>
                   <TableHead className="w-32">
                     {messages.validators.validations}
@@ -70,6 +134,9 @@ export function ValidatorsPage() {
                   <TableRow key={validator.id}>
                     <TableCell className="font-medium">{validator.name}</TableCell>
                     <TableCell>{validator.email}</TableCell>
+                    {isAdmin && (
+                      <TableCell>{validator.municipality?.city ?? '—'}</TableCell>
+                    )}
                     <TableCell>
                       <Badge
                         variant={

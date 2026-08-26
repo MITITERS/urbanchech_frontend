@@ -83,6 +83,67 @@ describe('ProtectedRoute', () => {
 
     renderWithProviders(<AppRoutes />, { route: '/municipalidades' })
 
+    expect(await screen.findByText(messages.forbidden.sectionTitle)).toBeInTheDocument()
+  })
+
+  it('denies the platform admin the agent-only report list', async () => {
+    // Los mira por municipalidad. Se llega acá por el historial del navegador.
+    signedInAs(buildUser(ROLES.PLATFORM_ADMIN, { municipality: null }))
+
+    renderWithProviders(<AppRoutes />, { route: '/reportes' })
+
+    expect(await screen.findByText(messages.forbidden.sectionTitle)).toBeInTheDocument()
+  })
+
+  it('lets the platform admin open a report detail', async () => {
+    // El listado no es suyo, pero el detalle sí: es a donde lleva la tabla de
+    // reportes de una municipalidad.
+    signedInAs(buildUser(ROLES.PLATFORM_ADMIN, { municipality: null }))
+
+    renderWithProviders(<AppRoutes />, { route: '/reportes/42' })
+
+    expect(
+      await screen.findByRole('link', { name: messages.nav.municipalities }),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(messages.forbidden.sectionTitle)).not.toBeInTheDocument()
+  })
+})
+
+describe('pantalla de permisos insuficientes', () => {
+  it('al personal del panel le ofrece volver a su sección, no cerrar sesión', async () => {
+    // Ofrecerle solo cerrar sesión lo dejaba en un callejón sin salida.
+    signedInAs(buildUser(ROLES.PLATFORM_ADMIN, { municipality: null }))
+
+    renderWithProviders(<AppRoutes />, { route: '/reportes' })
+    await screen.findByText(messages.forbidden.sectionTitle)
+
+    expect(
+      screen.getByRole('link', { name: messages.forbidden.goHome }),
+    ).toHaveAttribute('href', '/municipalidades')
+    expect(
+      screen.queryByRole('button', { name: messages.forbidden.logout }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('no le dice al personal del panel que use la app móvil', async () => {
+    // Ese mensaje es para el ciudadano y el validador; para un agente o un
+    // admin es sencillamente falso.
+    signedInAs(buildUser(ROLES.MUNICIPAL_AGENT))
+
+    renderWithProviders(<AppRoutes />, { route: '/municipalidades' })
+    await screen.findByText(messages.forbidden.sectionTitle)
+
+    expect(screen.queryByText(messages.forbidden.description)).not.toBeInTheDocument()
+  })
+
+  it('al ciudadano sí lo manda a la app móvil, y solo puede salir', async () => {
+    signedInAs(buildUser(ROLES.CITIZEN))
+
+    renderWithProviders(<AppRoutes />, { route: '/reportes' })
+
     expect(await screen.findByText(messages.forbidden.title)).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: messages.forbidden.logout }),
+    ).toBeInTheDocument()
   })
 })

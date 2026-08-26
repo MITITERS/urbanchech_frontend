@@ -14,6 +14,7 @@ import { ReportsPage } from '@/features/reports/ReportsPage'
 import { HomeRedirect } from '@/routes/HomeRedirect'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
 import { ADMIN_ONLY, AGENT_ONLY } from '@/routes/routeAccess'
+import { PANEL_ROLES } from '@/types/auth'
 
 /**
  * Route tree. Paths are in Spanish because they are user visible; everything
@@ -36,10 +37,17 @@ export function AppRoutes() {
         <Route path="/" element={<HomeRedirect />} />
       </Route>
 
-      {/* Gestión de reportes y de validadores: del agente municipal. */}
+      {/* El listado global de reportes es del agente. El admin los mira por
+          municipalidad, desde la ficha de cada una. */}
       <Route element={<ProtectedRoute allowedRoles={AGENT_ONLY} />}>
         <Route element={<AppShell />}>
           <Route path="/reportes" element={<ReportsPage />} />
+        </Route>
+      </Route>
+
+      {/* El detalle de un reporte y los validadores: los dos roles del panel. */}
+      <Route element={<ProtectedRoute allowedRoles={PANEL_ROLES} />}>
+        <Route element={<AppShell />}>
           <Route path="/reportes/:id" element={<ReportDetailPage />} />
           <Route path="/validadores" element={<ValidatorsPage />} />
         </Route>

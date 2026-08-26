@@ -77,7 +77,8 @@ export function MunicipalityReportsMap({ municipality, markers }: Props) {
         >
           <Popup>
             <span className="font-medium">
-              #{marker.id} · {messages.reports.category[marker.category]}
+              #{marker.number ?? marker.id} ·{' '}
+              {messages.reports.category[marker.category]}
             </span>
             <br />
             {messages.reports.status[marker.status]}

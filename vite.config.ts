@@ -14,6 +14,18 @@ export default defineConfig(({ mode }) => {
   // production (nginx does the same proxying).
   const proxyTarget = env.VITE_API_PROXY_TARGET ?? 'http://localhost:8000'
 
+  // El `Host` original se preserva a propósito (`changeOrigin` queda en false,
+  // que es el default). DRF arma las URLs absolutas de los archivos subidos con
+  // `build_absolute_uri()`, o sea a partir de ese header: reescribirlo al
+  // destino hacía que el detalle de un reporte devolviera
+  // `http://django:8000/media/...`, un host que solo existe dentro de la red de
+  // Docker. El navegador no lo resuelve y la foto quedaba en gris.
+  //
+  // Preservarlo es además lo que hace verdadera la frase de arriba: un solo
+  // origen de punta a punta. Requiere que el `Host` del navegador esté en el
+  // `ALLOWED_HOSTS` de Django — en local es `DJANGO_ALLOWED_HOSTS`, que ya
+  // existe para el mismo tipo de caso (probar desde un dispositivo en la LAN).
+
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
@@ -38,9 +50,10 @@ export default defineConfig(({ mode }) => {
           ? { usePolling: true, interval: 300 }
           : undefined,
       proxy: {
-        '/api': { target: proxyTarget, changeOrigin: true },
-        '/_allauth': { target: proxyTarget, changeOrigin: true },
-        '/media': { target: proxyTarget, changeOrigin: true },
+        '/api': { target: proxyTarget },
+        '/_allauth': { target: proxyTarget },
+        // Las fotos de los reportes: las sirve Django en desarrollo.
+        '/media': { target: proxyTarget },
       },
     },
   }
