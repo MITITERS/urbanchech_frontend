@@ -145,3 +145,17 @@
     @apply font-sans;
   }
 }
+
+/*
+ * Barra de desplazamiento fina y siempre a la vista.
+ *
+ * Reemplaza a `no-scrollbar` (la que trae shadcn en `CommandList`), que la
+ * escondía del todo: una lista recortada a `max-h-72` sin barra no avisa que
+ * abajo hay más. Con `scrollbar-width` en algo distinto de `auto`, Chrome y
+ * Firefox dibujan la barra clásica en lugar de la superpuesta de macOS, que
+ * solo aparece mientras se scrollea.
+ */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}

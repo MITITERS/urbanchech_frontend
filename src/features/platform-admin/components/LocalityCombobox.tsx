@@ -49,7 +49,14 @@ export function LocalityCombobox({
       : messages.municipalities.cityPlaceholder
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    /*
+     * `modal` no está de adorno: este combobox vive dentro de un `Dialog`, que
+     * bloquea el scroll de todo lo que quede fuera de su contenido. La lista se
+     * renderiza en un portal colgado del `body`, o sea afuera, así que sin esto
+     * la rueda del mouse no la mueve. En modo modal el popover instala su
+     * propio bloqueo y se declara a sí mismo como la zona que sí puede scrollear.
+     */
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           id={id}
