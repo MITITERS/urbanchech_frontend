@@ -1,10 +1,33 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { FullScreenMessage } from '@/components/common/FullScreenMessage'
+import { Button } from '@/components/ui/button'
 import { ForbiddenPage } from '@/routes/pages/ForbiddenPage'
 import { CHANGE_PASSWORD_ROUTE, LOGIN_ROUTE } from '@/config/constants'
 import { messages } from '@/config/messages'
 import { useAuth } from '@/hooks/useAuth'
 import { isPanelRole, type Role } from '@/types/auth'
+
+/** Cuenta de trabajo dada de baja: lo único que le queda es salir. */
+function DeactivatedAccount() {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  return (
+    <FullScreenMessage
+      title={messages.forbidden.deactivatedTitle}
+      description={messages.forbidden.deactivatedDescription}
+    >
+      <Button
+        variant="outline"
+        onClick={() =>
+          void logout().then(() => navigate(LOGIN_ROUTE, { replace: true }))
+        }
+      >
+        {messages.forbidden.logout}
+      </Button>
+    </FullScreenMessage>
+  )
+}
 
 interface ProtectedRouteProps {
   /**
@@ -34,6 +57,13 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
 
   if (!isPanelRole(user.role)) {
     return <ForbiddenPage />
+  }
+
+  // La cuenta existe y la sesión es válida, pero el admin la dio de baja: el
+  // backend le responde 403 a todo el panel. Se frena acá y se explica, en vez
+  // de dejarla entrar a una pantalla donde cada consulta va a fallar.
+  if (!user.isActive) {
+    return <DeactivatedAccount />
   }
 
   // A temporary password locks the whole panel until it is replaced.

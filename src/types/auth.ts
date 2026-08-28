@@ -17,10 +17,23 @@ export const PANEL_ROLES: readonly Role[] = [
   ROLES.MUNICIPAL_AGENT,
 ]
 
+/**
+ * Los dos lados de una tabla de cuentas de trabajo. `inactive` es lo que el
+ * panel llama «archivadas»: la cuenta existe, pero no trabaja y por eso no
+ * estorba en el listado principal.
+ */
+export type AccountState = 'active' | 'inactive'
+
 export interface Municipality {
   id: number
   city: string
   province: string
+  /**
+   * Presente en las respuestas del panel. Una cuenta de trabajo cuya
+   * municipalidad está dada de baja no se puede reactivar, así que la fila
+   * necesita saberlo sin pedir el municipio aparte.
+   */
+  is_active?: boolean
 }
 
 export interface AuthUser {
@@ -35,6 +48,12 @@ export interface AuthUser {
    * Every route redirects to the change-password screen until it is false.
    */
   mustChangePassword: boolean
+  /**
+   * False when the platform admin deactivated this work account. The session is
+   * still valid — the backend answers 403 to every panel endpoint — so the
+   * guard stops it at the door and says why.
+   */
+  isActive: boolean
 }
 
 export interface AuthSession {

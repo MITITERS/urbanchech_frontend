@@ -8,6 +8,9 @@ import { ROLES, type Role } from '@/types/auth'
 import { ValidatorsPage } from './ValidatorsPage'
 import type { Validator } from './types'
 
+/** El config de la instancia compartida, sin importar axios (regla del repo). */
+type RequestConfig = Parameters<typeof apiClient.get>[1]
+
 const VILLA_MARIA = { id: 3, city: 'Villa María', province: 'Córdoba' }
 const VILLA_NUEVA = { id: 4, city: 'Villa Nueva', province: 'Córdoba' }
 
@@ -34,14 +37,22 @@ function signedInAs(role: Role) {
   mockedRole.current = role
 }
 
-/** Respuesta de la API según el endpoint que se pida. */
-function stubApi() {
-  vi.spyOn(apiClient, 'get').mockImplementation(async (url: string) => {
-    if (url.includes('municipalities')) {
-      return { data: { results: [VILLA_MARIA, VILLA_NUEVA] } } as never
-    }
-    return { data: { results: [ACTIVE] } } as never
-  })
+/**
+ * Responde como el backend: cada pestaña pide su propio estado, y el validador
+ * aparece solo en la lista que le corresponde.
+ */
+function stubApi(validator: Validator = ACTIVE) {
+  vi.spyOn(apiClient, 'get').mockImplementation(
+    async (url: string, config?: RequestConfig) => {
+      if (url.includes('municipalities')) {
+        return { data: { results: [VILLA_MARIA, VILLA_NUEVA] } } as never
+      }
+      const wanted = validator.is_active_validator ? 'active' : 'inactive'
+      const state = (config?.params as { state?: string } | undefined)?.state
+      const results = state === wanted ? [validator] : []
+      return { data: { results } } as never
+    },
+  )
 }
 
 beforeEach(() => {
@@ -192,10 +203,45 @@ describe('ValidatorsPage, como admin de la plataforma', () => {
     await user.click(screen.getByLabelText(messages.validators.filterByMunicipality))
     await user.click(await screen.findByRole('option', { name: /Villa Nueva/ }))
 
+    // El filtro de municipalidad viaja junto al de estado: son dos cortes de
+    // la misma lista, y la pestaña elegida no se pierde al cambiar de municipio.
     await waitFor(() =>
       expect(get).toHaveBeenCalledWith('/api/validators/', {
-        params: { municipality: VILLA_NUEVA.id },
+        params: { state: 'active', municipality: VILLA_NUEVA.id },
       }),
+    )
+  })
+
+  it('un validador archivado sale del listado principal', async () => {
+    stubApi({ ...ACTIVE, is_active_validator: false })
+    const user = userEvent.setup()
+
+    renderWithProviders(<ValidatorsPage />)
+
+    expect(await screen.findByText(messages.validators.empty)).toBeInTheDocument()
+    expect(screen.queryByRole('row', { name: /Validador Uno/ })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('tab', { name: /Archivados/ }))
+
+    const row = await screen.findByRole('row', { name: /Validador Uno/ })
+    expect(within(row).getByText(messages.validators.inactive)).toBeInTheDocument()
+  })
+
+  it('desde archivados lo reactiva sin pedir confirmación', async () => {
+    stubApi({ ...ACTIVE, is_active_validator: false })
+    const post = vi
+      .spyOn(apiClient, 'post')
+      .mockResolvedValue({ data: ACTIVE } as never)
+    const user = userEvent.setup()
+
+    renderWithProviders(<ValidatorsPage />)
+    await user.click(screen.getByRole('tab', { name: /Archivados/ }))
+    await screen.findByRole('row', { name: /Validador Uno/ })
+
+    await user.click(screen.getByRole('button', { name: messages.validators.activate }))
+
+    await waitFor(() =>
+      expect(post).toHaveBeenCalledWith('/api/validators/7/activate/'),
     )
   })
 })

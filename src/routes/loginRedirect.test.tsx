@@ -19,6 +19,7 @@ function buildUser(role: Role): AuthUser {
         ? { id: 1, city: 'Villa María', province: 'Córdoba' }
         : null,
     mustChangePassword: false,
+    isActive: true,
   }
 }
 

@@ -43,6 +43,8 @@ export const endpoints = {
   },
   municipalAgents: {
     list: `${API}/municipal-agents/`,
+    activate: (id: number) => `${API}/municipal-agents/${id}/activate/`,
+    deactivate: (id: number) => `${API}/municipal-agents/${id}/deactivate/`,
   },
   validators: {
     list: `${API}/validators/`,

@@ -42,6 +42,10 @@ export interface MunicipalAgent {
   name: string
   email: string
   municipality: MunicipalityDetail | null
+  /** Baja lógica: sin esto la cuenta existe pero el panel no le responde. */
+  is_active_agent: boolean
+  /** Cambios de estado que gestionó desde el panel. */
+  management_count: number
   must_change_password: boolean
 }
 

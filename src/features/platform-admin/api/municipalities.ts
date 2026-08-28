@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
 import { endpoints } from '@/api/endpoints'
-import { municipalityKeys } from '@/lib/queryKeys'
+import { municipalityKeys, userKeys } from '@/lib/queryKeys'
 import type { Paginated } from '@/types/api'
 import type {
   MunicipalityDetail,
@@ -95,10 +95,16 @@ export function useDeleteMunicipality() {
     mutationFn: async (id: number) => {
       // Baja lógica del lado del servidor: el municipio deja de recibir
       // reportes y de listarse, pero su historia queda.
-      await apiClient.delete(endpoints.municipalities.detail(id))
+      const { data } = await apiClient.delete<{ deactivated_users: number }>(
+        endpoints.municipalities.detail(id),
+      )
+      return data
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: municipalityKeys.all })
+      // La baja arrastra a los agentes y validadores del municipio: sin esto,
+      // sus tablas seguirían mostrándolos habilitados hasta recargar.
+      void queryClient.invalidateQueries({ queryKey: userKeys.all })
     },
   })
 }

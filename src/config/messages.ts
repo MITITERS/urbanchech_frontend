@@ -60,9 +60,15 @@ export const messages = {
     created: 'Municipalidad registrada.',
     updated: 'Municipalidad actualizada.',
     deleted: 'Municipalidad eliminada.',
+    deletedWithStaff: (users: number) =>
+      users === 1
+        ? 'Municipalidad eliminada. Su cuenta de trabajo quedó archivada.'
+        : `Municipalidad eliminada. Sus ${users} cuentas de trabajo quedaron archivadas.`,
     deleteTitle: '¿Eliminar esta municipalidad?',
     deleteDescription:
       'Deja de recibir reportes nuevos y desaparece del listado. Sus reportes y usuarios se conservan para no perder el historial.',
+    deleteStaffWarning:
+      'Sus agentes y validadores quedan desactivados: pasan al archivado de cada sección y dejan de trabajar. Si volvés a dar de alta la municipalidad, hay que reactivarlos de a uno.',
     deleteWithData: (reports: number, users: number) =>
       `Tiene ${reports} ${reports === 1 ? 'reporte' : 'reportes'} y ${users} ${users === 1 ? 'usuario' : 'usuarios'} asociados.`,
     deleteConfirm: 'Eliminar municipalidad',
@@ -127,6 +133,18 @@ export const messages = {
       vereda: 'Vereda',
       otro: 'Otro',
     },
+  },
+  profile: {
+    title: 'Perfil del vecino',
+    memberSince: 'Vecino desde',
+    reports: 'Reportes',
+    reportsHere: 'Reportes en tu municipio',
+    reportsInMunicipality: (city: string) => `Reportes en ${city}`,
+    private:
+      'Este vecino tiene su perfil en privado, así que no se muestran su antigüedad ni su actividad en la plataforma.',
+    noReports: 'No tiene reportes en esta jurisdicción.',
+    close: 'Cerrar',
+    openReport: 'Ver reporte',
   },
   reportDetail: {
     backToList: 'Volver al listado',
@@ -210,8 +228,16 @@ export const messages = {
     deactivateDescription:
       'Pierde la posibilidad de validar reportes, pero conserva su acceso a la aplicación como ciudadano común. Las validaciones que ya ejecutó se mantienen en el historial.',
     deactivateConfirm: 'Desactivar validador',
-    deactivated: 'El validador ya no puede validar reportes.',
+    deactivated: 'El validador ya no puede validar. Lo movimos a Archivados.',
     activated: 'El validador vuelve a estar habilitado.',
+    tabActive: 'Habilitados',
+    tabArchived: 'Archivados',
+    emptyArchived: 'No hay validadores archivados.',
+    emptyArchivedForMunicipality: 'Esta municipalidad no tiene validadores archivados.',
+    archivedHint:
+      'Los validadores que desactivás quedan acá, fuera del listado principal. Reactivá uno para que vuelva a la pestaña Habilitados.',
+    cannotReactivate:
+      'Su municipalidad está dada de baja. Volvé a darla de alta para poder reactivar a este validador.',
   },
   agents: {
     title: 'Agentes municipales',
@@ -229,6 +255,29 @@ export const messages = {
     pendingPassword: 'Contraseña temporal pendiente',
     empty: 'Todavía no hay agentes municipales dados de alta.',
     created: 'Agente municipal dado de alta.',
+    state: 'Estado',
+    managed: 'Gestiones',
+    active: 'Activo',
+    inactive: 'Inactivo',
+    deactivate: 'Desactivar',
+    activate: 'Reactivar',
+    deactivateTitle: '¿Desactivar a este agente municipal?',
+    deactivateDescription:
+      'Deja de operar el panel de su municipalidad de inmediato. La cuenta no se elimina —puede iniciar sesión y el panel le explica qué pasó— y todo lo que gestionó sigue en el historial de cada reporte, con su nombre.',
+    deactivateConfirm: 'Desactivar agente',
+    deactivated: 'El agente ya no opera el panel. Lo movimos a Archivados.',
+    activated: 'El agente vuelve a operar el panel.',
+    tabActive: 'Habilitados',
+    tabArchived: 'Archivados',
+    emptyArchived: 'No hay agentes archivados.',
+    filterByMunicipality: 'Filtrar por municipalidad',
+    allMunicipalities: 'Todas las municipalidades',
+    emptyForMunicipality: 'Esta municipalidad todavía no tiene agentes.',
+    emptyArchivedForMunicipality: 'Esta municipalidad no tiene agentes archivados.',
+    archivedHint:
+      'Los agentes que desactivás quedan acá, fuera del listado principal. Reactivá uno para que vuelva a la pestaña Habilitados.',
+    cannotReactivate:
+      'Su municipalidad está dada de baja. Volvé a darla de alta para poder reactivar a este agente.',
     noMunicipalities:
       'Registrá primero una municipalidad para poder darle de alta su agente.',
   },
@@ -269,6 +318,10 @@ export const messages = {
       'Tu cuenta opera el panel, pero esta pantalla pertenece a otro rol. Volvé a tu sección para seguir trabajando.',
     goHome: 'Volver a mi sección',
     logout: 'Cerrar sesión',
+    // Para una cuenta de trabajo dada de baja por el admin de la plataforma.
+    deactivatedTitle: 'Tu cuenta está desactivada',
+    deactivatedDescription:
+      'El administrador de la plataforma desactivó tu cuenta, así que por ahora no podés operar el panel. Escribile si creés que es un error: tus datos y todo lo que gestionaste siguen intactos.',
   },
   notFound: {
     title: 'Página no encontrada',

@@ -1,18 +1,9 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { normalizeError } from '@/api/client'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { QueryState } from '@/components/common/QueryState'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import {
   Select,
   SelectContent,
@@ -20,12 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { messages } from '@/config/messages'
 import { useMunicipalities } from '@/features/platform-admin/api/municipalities'
 import { useAuth } from '@/hooks/useAuth'
-import { ROLES } from '@/types/auth'
+import { ROLES, type AccountState } from '@/types/auth'
 import { useSetValidatorActive, useValidators } from './api/validators'
 import { ValidatorFormDialog } from './components/ValidatorFormDialog'
+import { ValidatorsTable } from './components/ValidatorsTable'
 import type { Validator } from './types'
 
 /** Valor del filtro cuando no hay municipalidad elegida. */
@@ -38,26 +31,44 @@ const ALL_MUNICIPALITIES = 'all'
  * único que cambia es el alcance. El agente ve los de su municipalidad y las
  * altas caen ahí sin que pueda elegir. El admin no está acotado a ninguna: ve
  * los de todas, puede filtrar, y elige la municipalidad en cada alta.
+ *
+ * Dos pestañas sobre la misma tabla: los habilitados y los archivados —las
+ * cuentas dadas de baja—. La separación la resuelve el servidor con `?state=`,
+ * así que un validador archivado no ocupa el paginado del listado principal.
+ * El filtro por municipalidad vale para las dos pestañas: son dos cortes
+ * distintos de la misma lista, no dos listas.
  */
 export function ValidatorsPage() {
   const { role } = useAuth()
   const isAdmin = role === ROLES.PLATFORM_ADMIN
   const [municipalityFilter, setMunicipalityFilter] = useState(ALL_MUNICIPALITIES)
+  const [tab, setTab] = useState<AccountState>('active')
 
   // Solo el admin necesita la lista: es el único que elige municipalidad.
   const municipalities = useMunicipalities({ enabled: isAdmin })
-  const query = useValidators(
+  const scope =
     isAdmin && municipalityFilter !== ALL_MUNICIPALITIES
       ? { municipalityId: Number(municipalityFilter) }
-      : {},
-  )
+      : {}
+  // Las dos se piden juntas: es lo que pone el número en el rótulo desde el
+  // primer render y hace instantáneo el cambio de pestaña.
+  const active = useValidators({ ...scope, state: 'active' })
+  const archived = useValidators({ ...scope, state: 'inactive' })
   const setActive = useSetValidatorActive()
   const [pendingDeactivation, setPendingDeactivation] = useState<Validator | null>(null)
 
-  const toggle = async (validator: Validator, active: boolean) => {
-    await setActive.mutateAsync({ id: validator.id, active })
+  const toggle = async (validator: Validator, activate: boolean) => {
+    try {
+      await setActive.mutateAsync({ id: validator.id, active: activate })
+    } catch (error) {
+      // El backend rechaza reactivar una cuenta sin municipalidad activa. Sin
+      // este catch el rechazo quedaba como promesa sin atrapar, o sea en la
+      // consola en vez de en la pantalla.
+      toast.error(normalizeError(error).message)
+      return
+    }
     toast.success(
-      active ? messages.validators.activated : messages.validators.deactivated,
+      activate ? messages.validators.activated : messages.validators.deactivated,
     )
     setPendingDeactivation(null)
   }
@@ -103,79 +114,67 @@ export function ValidatorsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <QueryState
-            isPending={query.isPending}
-            isError={query.isError}
-            error={query.error}
-            onRetry={() => void query.refetch()}
-            isEmpty={query.data?.length === 0}
-            emptyMessage={
-              municipalityFilter === ALL_MUNICIPALITIES
-                ? messages.validators.empty
-                : messages.validators.emptyForMunicipality
-            }
-          >
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{messages.validators.name}</TableHead>
-                  <TableHead>{messages.validators.email}</TableHead>
-                  {/* Para el agente es siempre la suya: no aporta una columna. */}
-                  {isAdmin && <TableHead>{messages.validators.municipality}</TableHead>}
-                  <TableHead className="w-40">{messages.validators.state}</TableHead>
-                  <TableHead className="w-32">
-                    {messages.validators.validations}
-                  </TableHead>
-                  <TableHead className="w-32" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {query.data?.map((validator) => (
-                  <TableRow key={validator.id}>
-                    <TableCell className="font-medium">{validator.name}</TableCell>
-                    <TableCell>{validator.email}</TableCell>
-                    {isAdmin && (
-                      <TableCell>{validator.municipality?.city ?? '—'}</TableCell>
-                    )}
-                    <TableCell>
-                      <Badge
-                        variant={
-                          validator.is_active_validator ? 'default' : 'secondary'
-                        }
-                      >
-                        {validator.is_active_validator
-                          ? messages.validators.active
-                          : messages.validators.inactive}
-                      </Badge>
-                      {validator.must_change_password && (
-                        <span className="mt-1 block text-xs text-muted-foreground">
-                          {messages.validators.pendingPassword}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>{validator.validation_count}</TableCell>
-                    <TableCell>
-                      {validator.is_active_validator ? (
-                        <Button
-                          variant="outline"
-                          onClick={() => setPendingDeactivation(validator)}
-                        >
-                          {messages.validators.deactivate}
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          onClick={() => void toggle(validator, true)}
-                        >
-                          {messages.validators.activate}
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </QueryState>
+          <Tabs value={tab} onValueChange={(value) => setTab(value as AccountState)}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="active">
+                {messages.validators.tabActive}
+                {active.data && ` (${active.data.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="inactive">
+                {messages.validators.tabArchived}
+                {archived.data && ` (${archived.data.length})`}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="active">
+              <QueryState
+                isPending={active.isPending}
+                isError={active.isError}
+                error={active.error}
+                onRetry={() => void active.refetch()}
+                isEmpty={active.data?.length === 0}
+                emptyMessage={
+                  municipalityFilter === ALL_MUNICIPALITIES
+                    ? messages.validators.empty
+                    : messages.validators.emptyForMunicipality
+                }
+              >
+                <ValidatorsTable
+                  validators={active.data ?? []}
+                  showMunicipality={isAdmin}
+                  actionLabel={messages.validators.deactivate}
+                  onAction={setPendingDeactivation}
+                />
+              </QueryState>
+            </TabsContent>
+
+            <TabsContent value="inactive">
+              <p className="mb-3 text-sm text-muted-foreground">
+                {messages.validators.archivedHint}
+              </p>
+              <QueryState
+                isPending={archived.isPending}
+                isError={archived.isError}
+                error={archived.error}
+                onRetry={() => void archived.refetch()}
+                isEmpty={archived.data?.length === 0}
+                emptyMessage={
+                  municipalityFilter === ALL_MUNICIPALITIES
+                    ? messages.validators.emptyArchived
+                    : messages.validators.emptyArchivedForMunicipality
+                }
+              >
+                <ValidatorsTable
+                  validators={archived.data ?? []}
+                  showMunicipality={isAdmin}
+                  actionLabel={messages.validators.activate}
+                  isReactivation
+                  // Reactivar no le saca nada a nadie: no pide confirmación.
+                  onAction={(validator) => void toggle(validator, true)}
+                />
+              </QueryState>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

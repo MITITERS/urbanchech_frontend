@@ -34,8 +34,14 @@ export function MunicipalitiesPage() {
 
   const confirmDeletion = async () => {
     if (!pendingDeletion) return
-    await deleteMunicipality.mutateAsync(pendingDeletion.id)
-    toast.success(labels.deleted)
+    const { deactivated_users: deactivated } = await deleteMunicipality.mutateAsync(
+      pendingDeletion.id,
+    )
+    // Cuántas cuentas cayeron con el municipio lo cuenta el servidor: es una
+    // consecuencia que ocurre en otra pantalla, así que se dice acá.
+    toast.success(
+      deactivated > 0 ? labels.deletedWithStaff(deactivated) : labels.deleted,
+    )
     setPendingDeletion(null)
   }
 
@@ -127,7 +133,15 @@ export function MunicipalitiesPage() {
         variant="destructive"
         isPending={deleteMunicipality.isPending}
         onConfirm={() => void confirmDeletion()}
-      />
+      >
+        {/* La baja desactiva al personal del municipio: es una consecuencia en
+            otra pantalla, así que se avisa antes de ejecutarla, no después. */}
+        {pendingDeletion && pendingDeletion.user_count > 0 && (
+          <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            {labels.deleteStaffWarning}
+          </p>
+        )}
+      </ConfirmDialog>
     </>
   )
 }

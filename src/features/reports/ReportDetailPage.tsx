@@ -4,6 +4,7 @@ import { QueryState } from '@/components/common/QueryState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { messages } from '@/config/messages'
+import { AuthorLink } from '@/features/users/components/AuthorLink'
 import { useAuth } from '@/hooks/useAuth'
 import { ROLES } from '@/types/auth'
 import { formatDateTime } from '@/lib/format'
@@ -62,7 +63,8 @@ export function ReportDetailPage() {
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
                       {formatDateTime(report.created_at)} ·{' '}
-                      {messages.reportDetail.author}: {report.author.name} ·{' '}
+                      {messages.reportDetail.author}:{' '}
+                      <AuthorLink id={report.author.id} name={report.author.name} /> ·{' '}
                       {messages.reportDetail.likes}: {report.like_count}
                     </p>
                   </div>
@@ -114,7 +116,11 @@ export function ReportDetailPage() {
                         <li key={comment.id}>
                           <p className="text-sm">{comment.text}</p>
                           <p className="text-xs text-muted-foreground">
-                            {comment.author.name} · {formatDateTime(comment.created_at)}
+                            <AuthorLink
+                              id={comment.author.id}
+                              name={comment.author.name}
+                            />{' '}
+                            · {formatDateTime(comment.created_at)}
                           </p>
                         </li>
                       ))}

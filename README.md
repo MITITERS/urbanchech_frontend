@@ -294,6 +294,94 @@ componente sirva en cualquier contexto.
 El agente **no** pide `/api/municipalities/`: no elige municipalidad y además la
 API se la respondería con `403`. Por eso `useMunicipalities()` acepta `enabled`.
 
+### Habilitados y archivados: dos pestañas, dos consultas
+
+Las dos pantallas de cuentas de trabajo —agentes y validadores— tienen las
+mismas dos pestañas: **Habilitados**, que es el trabajo de todos los días, y
+**Archivados**, las cuentas dadas de baja. Desactivar mueve la fila de una a la
+otra, reactivar la trae de vuelta.
+
+Cada archivado es de su pantalla: un agente archivado no aparece entre los
+validadores archivados ni al revés. Son dos secciones distintas porque son dos
+cosas distintas.
+
+El corte lo hace el servidor con `?state=active|inactive`, no la pantalla: una
+cuenta archivada no tiene que viajar en la respuesta del listado principal ni
+ocuparle el paginado a las que sí trabajan.
+
+Las **dos** consultas se piden juntas y no solo la de la pestaña visible. Es lo
+que pone el número en el rótulo desde el primer render —«Archivados (3)» sin
+tener que entrar— y hace instantáneo el cambio de pestaña. Son dos listas
+chicas; si algún día dejan de serlo, se pide solo la visible y el número pasa a
+salir del `count` del paginado.
+
+La tabla vive en un componente propio (`AgentsTable`, `ValidatorsTable`) que las
+dos pestañas comparten: muestran lo mismo y se diferencian solo en qué hace el
+botón de la fila. Desactivar pide confirmación; reactivar no, porque no le saca
+nada a nadie.
+
+### Agentes municipales: el mismo tablero que el de validadores
+
+`/agentes` es la misma pantalla que `/validadores` con otro sujeto: tabla con
+estado y cifra de actividad, alta con contraseña temporal, y baja lógica con
+confirmación. Es la misma gestión —una cuenta de trabajo— y por eso se ve igual.
+
+También comparten el **filtro por municipalidad**: el mismo selector, y vale
+para las dos pestañas —habilitados y archivados son dos cortes de la misma
+lista, así que elegir un municipio no saca de la pestaña en la que estabas—.
+
+Una limitación heredada, igual en las dos pantallas: el selector se arma con
+`/api/municipalities/`, que devuelve solo las municipalidades **activas**. El
+personal de una municipalidad dada de baja sigue apareciendo en «Todas las
+municipalidades», pero no se lo puede aislar con el filtro.
+
+Dos diferencias, y las dos son del dominio, no de la pantalla:
+
+- **Quién la opera**: solo el administrador de la plataforma. Un agente no da de
+  baja a otro; eso lo decide la plataforma, no el municipio.
+- **Qué se pierde**: el validador deja de validar en terreno, el agente deja de
+  operar el panel. Ninguno pierde la cuenta.
+
+La cifra de actividad es `management_count`, los cambios de estado que hizo desde
+el panel: el equivalente de `validation_count` en la tabla del validador.
+
+Son dos páginas y no una parametrizada, a diferencia de `ValidatorsPage`, porque
+lo que comparten es la forma y no el comportamiento: distinto endpoint, distinto
+permiso, distinto alcance y distintos textos. Unificarlas habría dejado un
+componente con más ramas que contenido.
+
+### Dar de baja una municipalidad archiva a su personal
+
+La baja de un municipio desactiva a sus agentes y validadores, que pasan a la
+pestaña Archivados de cada pantalla. Como es una consecuencia que ocurre en otro
+lado, la pantalla la dice **dos veces**: el diálogo de confirmación la advierte
+antes —cuando el municipio tiene personal— y el toast posterior informa cuántas
+cuentas quedaron archivadas, con el número que devuelve el propio `DELETE`.
+
+Volver a dar de alta el municipio **no** reactiva a nadie: hay que hacerlo de a
+uno desde el archivado. El aviso del diálogo lo dice, para que la baja no se
+sienta como algo que se deshace con un clic.
+
+La mutación invalida también `userKeys.all`: sin eso, las tablas de agentes y
+validadores seguirían mostrándolos habilitados hasta recargar la página.
+
+En el archivado, el botón **Reactivar** de una cuenta cuya municipalidad está
+dada de baja aparece **deshabilitado y con el motivo en el `title`**, no
+escondido: esconderlo dejaría al admin sin saber por qué no puede. El backend lo
+rechaza igual con un `400`, y ese rechazo ahora se muestra como toast de error
+—antes quedaba como promesa sin atrapar, o sea en la consola.
+
+### Una cuenta dada de baja se frena en la puerta
+
+`ProtectedRoute` corta antes de renderizar nada cuando `user.isActive` es falso,
+y muestra qué pasó y cómo salir. La alternativa era dejarla entrar a una pantalla
+en la que cada consulta responde `403`: la sesión sigue siendo válida, lo que
+cambió es que el backend ya no le contesta nada del panel.
+
+El dato llega en `is_work_account_active` desde `/api/users/me/`, y se asume
+habilitada si el campo no viene: es lo que hacía un backend anterior a la baja
+lógica de agentes.
+
 ### Alta de municipalidad: provincia → ciudad → radio
 
 El alta es una cascada: se elige la provincia de una lista, eso carga sus
@@ -328,6 +416,44 @@ detalle es lo que hace que `ROUTE_ACCESS` tenga una entrada `exact`: la primera
 coincidencia gana, así que la entrada exacta del listado va antes que la del
 detalle.
 
+### El perfil de un vecino es un diálogo, no una página
+
+Tocar el nombre del autor de un reporte —o el de cualquier comentario— abre su
+perfil en un `Dialog`. No es una ruta a propósito: el agente está triando un
+reporte y mandarlo a otra pantalla le hace perder eso de vista. Lo que necesita
+saber del vecino entra en una tarjeta.
+
+Las dos consultas se disparan **al abrir**, no al renderizar: un reporte con
+diez comentarios traería diez perfiles que nadie miró.
+
+**Medida fija.** El diálogo mide siempre lo mismo, tenga la persona un reporte o
+veinte, y la lista es la única zona que scrollea. Dos detalles que lo sostienen:
+`flex` pisa la grilla del `DialogContent` base —una grilla no achica a sus hijos
+por debajo de su contenido, así que una dirección larga estiraba el modal entero
+y aparecía una barra horizontal— y `min-w-0` en la columna deja que el `truncate`
+funcione.
+
+Las direcciones se muestran con `shortAddress()`: Nominatim devuelve la
+jerarquía completa —«…, Municipio de Villa María, Pedanía Villa María,
+Departamento General San Martín, Córdoba, X5900, Argentina»— y en una fila de dos
+renglones esa cola no informa. Se conservan los tres primeros tramos, que son los
+que ubican el lugar, y la dirección completa queda en el `title`.
+
+Dos reglas que conviven ahí, y no dicen lo mismo:
+
+- **El perfil respeta la privacidad del vecino.** Si lo tiene en privado, no se
+  muestran su antigüedad ni su total de reportes, aunque quien mire sea del
+  municipio. Es la misma respuesta que recibe cualquiera; el backend no hace
+  excepciones por rol.
+- **Sus reportes en la jurisdicción se muestran igual.** Son datos que ese
+  municipio ya gestiona y que ve en su propio listado: el perfil no le enseña
+  nada que no tuviera a un clic.
+
+El listado va por `/api/panel/reports/?author=<id>` y no por el feed ciudadano.
+Es lo que hace que el filtro se aplique **sobre** el queryset ya acotado por
+jurisdicción: un agente ve lo que esa persona reportó en su municipio, nunca su
+actividad en otro.
+
 ### El «volver» del detalle depende del rol
 
 Los dos roles llegan al detalle de un reporte desde lugares distintos, así que el
@@ -349,6 +475,10 @@ entró a una sección de otro rol:
 | ------- | ------------------------- | ------------------------------ |
 | Mensaje | «usá la aplicación móvil» | «esta sección no es de tu rol» |
 | Salida  | cerrar sesión             | volver a su sección            |
+
+(La cuenta **dada de baja** es un tercer caso y vive aparte, en
+`ProtectedRoute`: ahí el rol es correcto y el problema es el estado de la
+cuenta.)
 
 Decirle a un administrador que use la app móvil es falso, y ofrecerle solo
 cerrar sesión lo deja sin salida — que es lo que pasaba al llegar ahí por el

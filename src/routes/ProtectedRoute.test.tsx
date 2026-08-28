@@ -16,6 +16,7 @@ function buildUser(role: Role, overrides: Partial<AuthUser> = {}): AuthUser {
     role,
     municipality: { id: 1, city: 'Villa María', province: 'Córdoba' },
     mustChangePassword: false,
+    isActive: true,
     ...overrides,
   }
 }
@@ -55,6 +56,20 @@ describe('ProtectedRoute', () => {
     renderWithProviders(<AppRoutes />, { route: '/reportes' })
 
     expect(await screen.findByText(messages.forbidden.title)).toBeInTheDocument()
+  })
+
+  it('stops a deactivated agent at the door, with an explanation', async () => {
+    // La sesión es válida y el rol es de panel: lo que cambió es que el admin
+    // dio de baja la cuenta. Sin este corte, entraría a una pantalla donde cada
+    // consulta responde 403.
+    signedInAs(buildUser(ROLES.MUNICIPAL_AGENT, { isActive: false }))
+
+    renderWithProviders(<AppRoutes />, { route: '/reportes' })
+
+    expect(
+      await screen.findByText(messages.forbidden.deactivatedTitle),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: messages.nav.reports })).toBeNull()
   })
 
   it('keeps an agent with a temporary password on the change-password screen', async () => {

@@ -19,6 +19,7 @@ interface BackendUser {
   role: string
   municipality?: { id: number; city: string; province: string } | null
   must_change_password?: boolean
+  is_work_account_active?: boolean
 }
 
 /**
@@ -45,6 +46,9 @@ function toAuthUser(user: BackendUser): AuthUser {
     role: normalizeRole(user.role),
     municipality: user.municipality ?? null,
     mustChangePassword: user.must_change_password ?? false,
+    // Ausente en un backend anterior a la baja lógica de agentes: ahí la cuenta
+    // se asume habilitada, que es como se comportaba.
+    isActive: user.is_work_account_active ?? true,
   }
 }
 

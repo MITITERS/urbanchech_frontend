@@ -3,27 +3,43 @@ import { apiClient } from '@/api/client'
 import { endpoints } from '@/api/endpoints'
 import { userKeys } from '@/lib/queryKeys'
 import type { Paginated } from '@/types/api'
+import type { AccountState } from '@/types/auth'
 import type { Validator, ValidatorPayload } from '../types'
 
-/** Filtro por municipalidad. Solo lo usa el admin: el agente ya viene acotado. */
-export type ValidatorFilter = { municipalityId?: number }
+/**
+ * Filtro del listado. `municipalityId` solo lo usa el admin —el agente ya viene
+ * acotado por su jurisdicción—; `state` separa habilitados de archivados.
+ */
+export type ValidatorFilter = { municipalityId?: number; state: AccountState }
 
 const validatorKeys = {
   all: [...userKeys.all, 'validators'] as const,
-  list: (filter: ValidatorFilter = {}) =>
-    [...userKeys.all, 'validators', 'list', filter.municipalityId ?? 'all'] as const,
+  list: (filter: ValidatorFilter) =>
+    [
+      ...userKeys.all,
+      'validators',
+      'list',
+      filter.municipalityId ?? 'all',
+      filter.state,
+    ] as const,
 }
 
 async function fetchValidators(filter: ValidatorFilter): Promise<Validator[]> {
   const { data } = await apiClient.get<Paginated<Validator>>(
     endpoints.validators.list,
-    // El backend ignora el filtro para el agente, que solo ve su jurisdicción.
-    { params: filter.municipalityId ? { municipality: filter.municipalityId } : {} },
+    // El backend ignora el filtro de municipalidad para el agente, que solo ve
+    // su jurisdicción. El de estado vale para los dos roles.
+    {
+      params: {
+        state: filter.state,
+        ...(filter.municipalityId ? { municipality: filter.municipalityId } : {}),
+      },
+    },
   )
   return data.results
 }
 
-export function useValidators(filter: ValidatorFilter = {}) {
+export function useValidators(filter: ValidatorFilter) {
   return useQuery({
     queryKey: validatorKeys.list(filter),
     queryFn: () => fetchValidators(filter),
