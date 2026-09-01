@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!--
+    El pin de UrbanCheck, reducido a lo que sobrevive a 16px.
+
+    El logo completo —el que se usa dentro de la app— tiene la ciudad, el
+    farol, el árbol y la ruta adentro del anillo. A tamaño de pestaña todo eso
+    se convierte en una mancha oscura, así que acá queda solo la estructura que
+    sí se lee: el anillo con el degradado verde→azul y el rombo azul petróleo
+    que le da la silueta de pin. Los tres colores son los mismos del logo.
+  -->
+  <defs>
+    <linearGradient id="ring" x1="3" y1="25" x2="29" y2="6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#03CB95" />
+      <stop offset=".5" stop-color="#0AA8AE" />
+      <stop offset="1" stop-color="#0370CE" />
+    </linearGradient>
+  </defs>
+  <circle cx="16" cy="12.6" r="9.4" fill="none" stroke="url(#ring)" stroke-width="5" />
+  <path d="M5.6 14.6 16 30.8 26.4 14.6Z" fill="#0E3E63" />
+</svg>
