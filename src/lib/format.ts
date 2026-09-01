@@ -54,3 +54,21 @@ export function shortAddress(value: string | null | undefined): string {
   if (parts.length <= ADDRESS_PARTS) return parts.join(', ')
   return parts.slice(0, ADDRESS_PARTS).join(', ')
 }
+
+/**
+ * Iniciales de una persona, para el avatar de la topbar.
+ *
+ * Toma la primera letra del primer y del último tramo del nombre. Si lo que
+ * llega es un correo —el nombre puede venir vacío—, se queda con la primera
+ * letra de la parte local, que es lo único que identifica algo ahí.
+ */
+export function initials(value: string): string {
+  const name = value.trim()
+  if (name === '') return '?'
+  if (name.includes('@')) return name[0].toUpperCase()
+
+  const parts = name.split(/\s+/).filter(Boolean)
+  const first = parts[0]?.[0] ?? ''
+  const last = parts.length > 1 ? (parts[parts.length - 1][0] ?? '') : ''
+  return (first + last).toUpperCase()
+}

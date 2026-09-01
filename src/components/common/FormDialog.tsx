@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { FormAlert } from '@/components/common/FormAlert'
 import { Button } from '@/components/ui/button'
 import { FieldGroup } from '@/components/ui/field'
 import { messages } from '@/config/messages'
@@ -58,21 +59,18 @@ export function FormDialog({
           }}
         >
           <FieldGroup>{children}</FieldGroup>
-          {error && (
-            <p role="alert" className="mt-4 text-sm text-destructive">
-              {error}
-            </p>
-          )}
+          {error && <FormAlert message={error} className="mt-4" />}
           <DialogFooter className="mt-6">
             <Button
               type="button"
               variant="outline"
+              size="lg"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
               {messages.common.cancel}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" size="lg" disabled={isSubmitting}>
               {isSubmitting ? messages.common.saving : submitLabel}
             </Button>
           </DialogFooter>

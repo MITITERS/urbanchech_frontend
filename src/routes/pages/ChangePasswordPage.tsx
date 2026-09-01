@@ -6,8 +6,9 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { changePassword } from '@/api/auth'
 import { isApiError } from '@/api/client'
+import { AuthShell } from '@/components/common/AuthShell'
+import { FormAlert } from '@/components/common/FormAlert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { FieldGroup } from '@/components/ui/field'
 import { PasswordField } from '@/components/common/PasswordField'
 import { messages } from '@/config/messages'
@@ -69,38 +70,32 @@ export function ChangePasswordPage() {
   ] as const
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>{messages.changePassword.title}</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            {messages.changePassword.description}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} noValidate>
-            <FieldGroup>
-              {fields.map(({ name, label }) => (
-                <PasswordField
-                  key={name}
-                  control={form.control}
-                  name={name}
-                  label={label}
-                  autoComplete="new-password"
-                />
-              ))}
-              {formError && (
-                <p role="alert" className="text-sm text-destructive">
-                  {formError}
-                </p>
-              )}
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {messages.changePassword.submit}
-              </Button>
-            </FieldGroup>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthShell
+      title={messages.changePassword.title}
+      description={messages.changePassword.description}
+    >
+      <form onSubmit={onSubmit} noValidate>
+        <FieldGroup>
+          {fields.map(({ name, label }) => (
+            <PasswordField
+              key={name}
+              control={form.control}
+              name={name}
+              label={label}
+              autoComplete="new-password"
+            />
+          ))}
+          {formError && <FormAlert message={formError} />}
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={form.formState.isSubmitting}
+          >
+            {messages.changePassword.submit}
+          </Button>
+        </FieldGroup>
+      </form>
+    </AuthShell>
   )
 }

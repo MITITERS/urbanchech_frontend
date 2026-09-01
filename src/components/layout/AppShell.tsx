@@ -20,8 +20,15 @@ export function AppShell() {
       <Sidebar role={user.role} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar user={user} onLogout={handleLogout} />
-        <main className="flex-1 overflow-x-auto p-6">
-          <Outlet />
+        {/*
+          El contenido tiene un ancho máximo: una tabla de siete columnas
+          estirada a lo ancho de un monitor de 27" deja el ojo saltando entre la
+          primera y la última celda.
+        */}
+        <main className="flex-1 px-4 py-6 md:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-[100rem]">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

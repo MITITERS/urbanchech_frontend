@@ -7,6 +7,10 @@ export const messages = {
   app: {
     name: 'UrbanCheck',
     subtitle: 'Panel municipal',
+    /** Bajada del logo, la misma que usa la app móvil. */
+    tagline: 'Comunidad Conectada',
+    /** Rótulo del dato que la topbar muestra a la izquierda. */
+    municipalityLabel: 'Municipio',
   },
   nav: {
     reports: 'Reportes',

@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { normalizeError } from '@/api/client'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { PageHeader } from '@/components/common/PageHeader'
 import { QueryState } from '@/components/common/QueryState'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -74,20 +75,18 @@ export function ValidatorsPage() {
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle>{messages.validators.title}</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {!isAdmin
-                ? messages.validators.description
-                : municipalities.data?.length === 0
-                  ? messages.validators.noMunicipalities
-                  : messages.validators.adminDescription}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+    <div className="space-y-6">
+      <PageHeader
+        title={messages.validators.title}
+        description={
+          !isAdmin
+            ? messages.validators.description
+            : municipalities.data?.length === 0
+              ? messages.validators.noMunicipalities
+              : messages.validators.adminDescription
+        }
+        actions={
+          <>
             {isAdmin && (
               <Select value={municipalityFilter} onValueChange={setMunicipalityFilter}>
                 <SelectTrigger
@@ -111,22 +110,29 @@ export function ValidatorsPage() {
             <ValidatorFormDialog
               municipalities={isAdmin ? (municipalities.data ?? []) : undefined}
             />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={tab} onValueChange={(value) => setTab(value as AccountState)}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="active">
-                {messages.validators.tabActive}
-                {active.data && ` (${active.data.length})`}
-              </TabsTrigger>
-              <TabsTrigger value="inactive">
-                {messages.validators.tabArchived}
-                {archived.data && ` (${archived.data.length})`}
-              </TabsTrigger>
-            </TabsList>
+          </>
+        }
+      />
 
-            <TabsContent value="active">
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setTab(value as AccountState)}
+        className="gap-4"
+      >
+        <TabsList>
+          <TabsTrigger value="active">
+            {messages.validators.tabActive}
+            {active.data && ` (${active.data.length})`}
+          </TabsTrigger>
+          <TabsTrigger value="inactive">
+            {messages.validators.tabArchived}
+            {archived.data && ` (${archived.data.length})`}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="active">
+          <Card>
+            <CardContent>
               <QueryState
                 isPending={active.isPending}
                 isError={active.isError}
@@ -146,10 +152,14 @@ export function ValidatorsPage() {
                   onAction={setPendingDeactivation}
                 />
               </QueryState>
-            </TabsContent>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <TabsContent value="inactive">
-              <p className="mb-3 text-sm text-muted-foreground">
+        <TabsContent value="inactive">
+          <Card>
+            <CardContent className="space-y-3">
+              <p className="rounded-lg bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
                 {messages.validators.archivedHint}
               </p>
               <QueryState
@@ -173,10 +183,10 @@ export function ValidatorsPage() {
                   onAction={(validator) => void toggle(validator, true)}
                 />
               </QueryState>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* La baja pide confirmación explícita y aclara que no es una expulsión. */}
       <ConfirmDialog
@@ -191,6 +201,6 @@ export function ValidatorsPage() {
           if (pendingDeactivation) void toggle(pendingDeactivation, false)
         }}
       />
-    </>
+    </div>
   )
 }

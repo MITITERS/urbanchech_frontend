@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Clock, MapPin, ThumbsUp, User } from 'lucide-react'
+import { InitialsAvatar } from '@/components/common/InitialsAvatar'
 import { QueryState } from '@/components/common/QueryState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,13 +8,44 @@ import { messages } from '@/config/messages'
 import { AuthorLink } from '@/features/users/components/AuthorLink'
 import { useAuth } from '@/hooks/useAuth'
 import { ROLES } from '@/types/auth'
+import { cn } from '@/lib/utils'
 import { formatDateTime } from '@/lib/format'
 import { useReportDetail } from './api/reportDetail'
+import { ReportCategoryLabel } from './components/ReportCategory'
 import { ReportMap } from './components/ReportMap'
 import { ReportStatusBadge } from './components/ReportStatusBadge'
 import { StatusHistory } from './components/StatusHistory'
 import { TransitionActions } from './components/TransitionActions'
 import { REPORT_STATUSES } from './types'
+
+/** Rótulo de una sección dentro de la ficha del reporte. */
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+      {children}
+    </h2>
+  )
+}
+
+/** Un dato de la cabecera: ícono, y el valor al lado. */
+function MetaItem({
+  icon,
+  children,
+  className,
+}: {
+  icon: React.ReactNode
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <span className={cn('inline-flex items-center gap-1.5', className)}>
+      <span aria-hidden className="text-muted-foreground/70">
+        {icon}
+      </span>
+      {children}
+    </span>
+  )
+}
 
 /** US-013 — detalle del reporte con las acciones de estado disponibles. */
 export function ReportDetailPage() {
@@ -38,7 +70,12 @@ export function ReportDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Button asChild variant="ghost">
+      <Button
+        asChild
+        variant="ghost"
+        size="lg"
+        className="-ml-2.5 text-muted-foreground"
+      >
         <Link to={back.to}>
           <ArrowLeft className="size-4" aria-hidden />
           {back.label}
@@ -52,45 +89,51 @@ export function ReportDetailPage() {
         onRetry={() => void query.refetch()}
       >
         {report && (
-          <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <div className="space-y-6">
               <Card>
                 <CardHeader className="flex flex-row items-start justify-between gap-4">
                   <div className="space-y-2">
-                    <CardTitle>
-                      #{report.number ?? report.id} ·{' '}
-                      {messages.reports.category[report.category]}
+                    <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
+                      <span className="tabular">#{report.number ?? report.id}</span>
+                      <span aria-hidden className="text-border">
+                        ·
+                      </span>
+                      <ReportCategoryLabel category={report.category} />
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDateTime(report.created_at)} ·{' '}
-                      {messages.reportDetail.author}:{' '}
-                      <AuthorLink id={report.author.id} name={report.author.name} /> ·{' '}
-                      {messages.reportDetail.likes}: {report.like_count}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                      <MetaItem icon={<Clock className="size-3.5" />}>
+                        {formatDateTime(report.created_at)}
+                      </MetaItem>
+                      <MetaItem icon={<User className="size-3.5" />}>
+                        {messages.reportDetail.author}:{' '}
+                        <AuthorLink id={report.author.id} name={report.author.name} />
+                      </MetaItem>
+                      <MetaItem icon={<ThumbsUp className="size-3.5" />}>
+                        {messages.reportDetail.likes}: {report.like_count}
+                      </MetaItem>
+                    </div>
                   </div>
                   <ReportStatusBadge status={report.status} />
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-5">
                   {report.photo && (
                     <img
                       src={report.photo}
                       alt=""
-                      className="max-h-96 w-full rounded-md object-cover"
+                      className="max-h-96 w-full rounded-lg object-cover ring-1 ring-border"
                     />
                   )}
-                  <div>
-                    <h2 className="text-sm font-medium">
-                      {messages.reportDetail.description}
-                    </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                  <div className="space-y-1.5">
+                    <SectionLabel>{messages.reportDetail.description}</SectionLabel>
+                    <p className="text-sm leading-relaxed whitespace-pre-line">
                       {report.description}
                     </p>
                   </div>
-                  <div>
-                    <h2 className="text-sm font-medium">
-                      {messages.reportDetail.location}
-                    </h2>
-                    <p className="mb-2 mt-1 text-sm text-muted-foreground">
+                  <div className="space-y-2">
+                    <SectionLabel>{messages.reportDetail.location}</SectionLabel>
+                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <MapPin className="size-3.5 shrink-0" aria-hidden />
                       {report.address || '—'}
                     </p>
                     <ReportMap
@@ -113,15 +156,21 @@ export function ReportDetailPage() {
                   ) : (
                     <ul className="space-y-4">
                       {report.comments.map((comment) => (
-                        <li key={comment.id}>
-                          <p className="text-sm">{comment.text}</p>
-                          <p className="text-xs text-muted-foreground">
-                            <AuthorLink
-                              id={comment.author.id}
-                              name={comment.author.name}
-                            />{' '}
-                            · {formatDateTime(comment.created_at)}
-                          </p>
+                        <li key={comment.id} className="flex gap-3">
+                          <InitialsAvatar
+                            name={comment.author.name}
+                            className="mt-0.5"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm">{comment.text}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              <AuthorLink
+                                id={comment.author.id}
+                                name={comment.author.name}
+                              />{' '}
+                              · {formatDateTime(comment.created_at)}
+                            </p>
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -130,7 +179,9 @@ export function ReportDetailPage() {
               </Card>
             </div>
 
-            <div className="space-y-6">
+            {/* La columna de acciones acompaña el scroll: el historial y los
+                botones son lo que se consulta mientras se lee el reporte. */}
+            <div className="space-y-6 lg:sticky lg:top-22 lg:self-start">
               <Card>
                 <CardHeader>
                   <CardTitle>{messages.reportDetail.actions}</CardTitle>
@@ -142,7 +193,7 @@ export function ReportDetailPage() {
                       transitions={report.available_transitions}
                     />
                   ) : (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="rounded-lg bg-muted/60 p-3 text-sm text-muted-foreground">
                       {report.status === REPORT_STATUSES.PENDING_VALIDATION
                         ? messages.reportDetail.awaitingValidation
                         : messages.reportDetail.finalStatus}

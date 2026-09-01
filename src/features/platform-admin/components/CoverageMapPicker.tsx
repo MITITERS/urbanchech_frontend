@@ -19,9 +19,9 @@ const FALLBACK_CENTER: LatLngExpression = [-31.4201, -64.1888]
 
 const centerIcon = divIcon({
   className: '',
-  html: '<span class="block size-3 rounded-full border-2 border-background bg-primary shadow"></span>',
-  iconSize: [12, 12],
-  iconAnchor: [6, 6],
+  html: '<span class="block size-3.5 rounded-full border-2 border-background bg-primary shadow-md ring-4 ring-primary/20"></span>',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
 })
 
 function Recenter({
@@ -84,7 +84,7 @@ export function CoverageMapPicker({
         center={center}
         zoom={DEFAULT_ZOOM}
         scrollWheelZoom={false}
-        className="h-56 w-full rounded-md"
+        className="h-56 w-full rounded-lg ring-1 ring-border"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -99,13 +99,18 @@ export function CoverageMapPicker({
               <Circle
                 center={[latitude, longitude]}
                 radius={radiusKm * KM_TO_METERS}
-                pathOptions={{ color: 'var(--color-primary)', weight: 2 }}
+                pathOptions={{
+                  color: 'var(--color-primary)',
+                  weight: 2,
+                  fillColor: 'var(--color-primary)',
+                  fillOpacity: 0.08,
+                }}
               />
             )}
           </>
         )}
       </MapContainer>
-      <p className="text-xs text-muted-foreground">
+      <p className="tabular text-xs text-muted-foreground">
         {hasCenter
           ? `${messages.municipalities.center}: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
           : messages.municipalities.centerHint}

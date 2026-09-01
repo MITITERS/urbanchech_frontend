@@ -4,8 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { isApiError } from '@/api/client'
+import { AuthShell } from '@/components/common/AuthShell'
+import { FormAlert } from '@/components/common/FormAlert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { PasswordField } from '@/components/common/PasswordField'
 import { Input } from '@/components/ui/input'
@@ -69,51 +70,44 @@ export function LoginPage() {
   })
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-6">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>{messages.auth.loginTitle}</CardTitle>
-          <p className="text-sm text-muted-foreground">{messages.app.subtitle}</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} noValidate>
-            <FieldGroup>
-              <Controller
-                name="email"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>{messages.auth.email}</FieldLabel>
-                    <Input
-                      {...field}
-                      id={field.name}
-                      type="email"
-                      autoComplete="username"
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-              <PasswordField
-                control={form.control}
-                name="password"
-                label={messages.auth.password}
-              />
-              {formError && (
-                <p role="alert" className="text-sm text-destructive">
-                  {formError}
-                </p>
-              )}
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting
-                  ? messages.auth.submitting
-                  : messages.auth.submit}
-              </Button>
-            </FieldGroup>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthShell title={messages.auth.loginTitle} description={messages.app.subtitle}>
+      <form onSubmit={onSubmit} noValidate>
+        <FieldGroup>
+          <Controller
+            name="email"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>{messages.auth.email}</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="email"
+                  autoComplete="username"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+              </Field>
+            )}
+          />
+          <PasswordField
+            control={form.control}
+            name="password"
+            label={messages.auth.password}
+          />
+          {formError && <FormAlert message={formError} />}
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting
+              ? messages.auth.submitting
+              : messages.auth.submit}
+          </Button>
+        </FieldGroup>
+      </form>
+    </AuthShell>
   )
 }

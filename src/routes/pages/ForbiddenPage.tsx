@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { Lock, SignpostBig } from 'lucide-react'
 import { FullScreenMessage } from '@/components/common/FullScreenMessage'
 import { Button } from '@/components/ui/button'
 import { LOGIN_ROUTE } from '@/config/constants'
@@ -29,6 +30,7 @@ export function ForbiddenPage() {
       <FullScreenMessage
         title={messages.forbidden.sectionTitle}
         description={messages.forbidden.sectionDescription}
+        icon={<SignpostBig className="size-6" />}
       >
         <Button asChild>
           <Link to={homeRouteFor(user.role)}>{messages.forbidden.goHome}</Link>
@@ -41,6 +43,8 @@ export function ForbiddenPage() {
     <FullScreenMessage
       title={messages.forbidden.title}
       description={messages.forbidden.description}
+      icon={<Lock className="size-6" />}
+      tone="destructive"
     >
       <Button
         variant="outline"

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ArrowUpRight, Radius, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { PageHeader } from '@/components/common/PageHeader'
 import { QueryState } from '@/components/common/QueryState'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -46,15 +48,14 @@ export function MunicipalitiesPage() {
   }
 
   return (
-    <>
+    <div className="space-y-6">
+      <PageHeader
+        title={labels.title}
+        description={labels.description}
+        actions={<CreateMunicipalityDialog />}
+      />
+
       <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle>{labels.title}</CardTitle>
-            <p className="text-sm text-muted-foreground">{labels.description}</p>
-          </div>
-          <CreateMunicipalityDialog />
-        </CardHeader>
         <CardContent>
           <QueryState
             isPending={query.isPending}
@@ -69,45 +70,68 @@ export function MunicipalitiesPage() {
                 <TableRow>
                   <TableHead>{labels.city}</TableHead>
                   <TableHead>{labels.province}</TableHead>
-                  <TableHead className="w-32">{labels.radius}</TableHead>
-                  <TableHead className="w-24">{labels.reports}</TableHead>
-                  <TableHead className="w-24">{labels.users}</TableHead>
+                  <TableHead className="w-36">{labels.radius}</TableHead>
+                  <TableHead className="w-24 text-right">{labels.reports}</TableHead>
+                  <TableHead className="w-24 text-right">{labels.users}</TableHead>
                   <TableHead className="w-32">{labels.createdAt}</TableHead>
-                  <TableHead className="w-44">{labels.actions}</TableHead>
+                  <TableHead className="w-44 text-right">{labels.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {query.data?.map((municipality) => (
-                  <TableRow key={municipality.id}>
+                  <TableRow key={municipality.id} className="group">
                     <TableCell className="font-medium">
                       {/* Entrar al municipio muestra sus reportes. */}
                       <Link
                         to={`/municipalidades/${municipality.id}`}
-                        className="text-primary hover:underline"
+                        className="inline-flex items-center gap-1 text-primary underline-offset-4 group-hover:underline"
                       >
                         {municipality.city}
+                        <ArrowUpRight
+                          className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100"
+                          aria-hidden
+                        />
                       </Link>
                     </TableCell>
-                    <TableCell>{municipality.province}</TableCell>
-                    <TableCell>
-                      {municipality.coverage_radius_km
-                        ? `${Number(municipality.coverage_radius_km)} km`
-                        : labels.noCenter}
+                    <TableCell className="text-muted-foreground">
+                      {municipality.province}
                     </TableCell>
-                    <TableCell>{municipality.report_count}</TableCell>
-                    <TableCell>{municipality.user_count}</TableCell>
-                    <TableCell>{formatDate(municipality.created_at)}</TableCell>
-                    <TableCell className="flex gap-2">
-                      <MunicipalityFormDialog
-                        municipality={municipality}
-                        trigger={<Button variant="outline">{labels.edit}</Button>}
-                      />
-                      <Button
-                        variant="ghost"
-                        onClick={() => setPendingDeletion(municipality)}
-                      >
-                        {labels.delete}
-                      </Button>
+                    <TableCell>
+                      {municipality.coverage_radius_km ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Radius
+                            className="size-3.5 text-muted-foreground"
+                            aria-hidden
+                          />
+                          {`${Number(municipality.coverage_radius_km)} km`}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">{labels.noCenter}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {municipality.report_count}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {municipality.user_count}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(municipality.created_at)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <MunicipalityFormDialog
+                          municipality={municipality}
+                          trigger={<Button variant="outline">{labels.edit}</Button>}
+                        />
+                        <Button
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive"
+                          onClick={() => setPendingDeletion(municipality)}
+                        >
+                          {labels.delete}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -137,11 +161,12 @@ export function MunicipalitiesPage() {
         {/* La baja desactiva al personal del municipio: es una consecuencia en
             otra pantalla, así que se avisa antes de ejecutarla, no después. */}
         {pendingDeletion && pendingDeletion.user_count > 0 && (
-          <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {labels.deleteStaffWarning}
-          </p>
+          <div className="flex items-start gap-2.5 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            <Users className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <span>{labels.deleteStaffWarning}</span>
+          </div>
         )}
       </ConfirmDialog>
-    </>
+    </div>
   )
 }

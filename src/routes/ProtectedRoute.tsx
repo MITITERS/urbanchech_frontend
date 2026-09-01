@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Loader2, ShieldOff } from 'lucide-react'
 import { FullScreenMessage } from '@/components/common/FullScreenMessage'
 import { Button } from '@/components/ui/button'
 import { ForbiddenPage } from '@/routes/pages/ForbiddenPage'
@@ -16,6 +17,8 @@ function DeactivatedAccount() {
     <FullScreenMessage
       title={messages.forbidden.deactivatedTitle}
       description={messages.forbidden.deactivatedDescription}
+      icon={<ShieldOff className="size-6" />}
+      tone="destructive"
     >
       <Button
         variant="outline"
@@ -48,7 +51,12 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const location = useLocation()
 
   if (status === 'loading') {
-    return <FullScreenMessage title={messages.auth.checkingSession} />
+    return (
+      <FullScreenMessage
+        title={messages.auth.checkingSession}
+        icon={<Loader2 className="size-6 animate-spin text-primary" />}
+      />
+    )
   }
 
   if (status === 'anonymous' || !user) {

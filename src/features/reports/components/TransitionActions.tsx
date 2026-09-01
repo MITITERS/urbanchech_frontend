@@ -64,10 +64,17 @@ export function TransitionActions({
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
+      {/*
+        En columna y a lo ancho: la tarjeta de acciones vive en la banda
+        angosta de la derecha, donde una fila de botones se parte en pedazos de
+        distinto tamaño. Apiladas, además, quedan en el orden en que el backend
+        las devuelve, que es el del avance del reporte.
+      */}
+      <div className="grid gap-2">
         {transitions.map((item) => (
           <Button
             key={item.operation}
+            size="lg"
             variant={DESTRUCTIVE.includes(item.operation) ? 'outline' : 'default'}
             onClick={() => setPending(item)}
           >

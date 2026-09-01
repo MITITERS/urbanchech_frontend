@@ -1,30 +1,73 @@
-import { LogOut } from 'lucide-react'
+import { Building2, ChevronDown, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { BrandMark, BrandWordmark } from '@/components/common/Brand'
 import { messages } from '@/config/messages'
+import { initials } from '@/lib/format'
 import type { AuthUser } from '@/types/auth'
 
 export function Topbar({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
+  const city = user.municipality?.city
+
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b px-6">
-      <div className="flex flex-col">
-        <span className="text-sm font-medium">
-          {user.municipality?.city ?? messages.app.subtitle}
-        </span>
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-background/85 px-4 backdrop-blur-md md:px-6">
+      <div className="flex min-w-0 items-center gap-3">
+        {/* Por debajo de 768px no hay sidebar, así que la marca vive acá. */}
+        <div className="flex items-center gap-2 md:hidden">
+          <BrandMark size="sm" />
+          <BrandWordmark className="text-base" />
+        </div>
+
+        {city ? (
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span
+              aria-hidden
+              className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground sm:flex"
+            >
+              <Building2 className="size-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[0.625rem] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+                {messages.app.municipalityLabel}
+              </p>
+              <p className="truncate text-sm font-medium">{city}</p>
+            </div>
+          </div>
+        ) : (
+          <span className="hidden text-sm font-medium text-muted-foreground md:inline">
+            {messages.app.subtitle}
+          </span>
+        )}
       </div>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost">{user.name || user.email}</Button>
+          <Button variant="ghost" size="lg" className="gap-2 pl-1.5">
+            {/* Las iniciales son la única pieza que identifica al usuario de un
+                vistazo: el nombre se corta en pantallas angostas. */}
+            <span
+              aria-hidden
+              className="brand-gradient flex size-7 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-semibold text-white"
+            >
+              {initials(user.name || user.email)}
+            </span>
+            <span className="hidden max-w-40 truncate sm:inline">
+              {user.name || user.email}
+            </span>
+            <ChevronDown className="size-4 text-muted-foreground" aria-hidden />
+          </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="w-60">
+          <div className="px-2 py-1.5">
+            {user.name && <p className="truncate text-sm font-medium">{user.name}</p>}
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={onLogout}>
             <LogOut className="size-4" aria-hidden />

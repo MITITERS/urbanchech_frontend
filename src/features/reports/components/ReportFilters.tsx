@@ -1,6 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -28,6 +34,36 @@ const ORDERING_LABELS: Record<ReportOrdering, string> = {
   created_at: messages.reports.ordering.oldest,
   '-like_count': messages.reports.ordering.mostLiked,
   like_count: messages.reports.ordering.leastLiked,
+}
+
+/**
+ * Un filtro con su rótulo.
+ *
+ * Estado y categoría no tenían rótulo visible —solo `aria-label`— y quedaban
+ * desalineados con los otros cuatro, que sí lo tenían. Con todos rotulados
+ * igual, la barra se lee como una sola fila de controles y no como dos grupos
+ * distintos que casualmente están juntos.
+ */
+function FilterField({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string
+  htmlFor?: string
+  children: ReactNode
+}) {
+  return (
+    <div className="grid gap-1.5">
+      <Label
+        htmlFor={htmlFor}
+        className="text-xs font-medium tracking-wide text-muted-foreground"
+      >
+        {label}
+      </Label>
+      {children}
+    </div>
+  )
 }
 
 interface ReportFiltersProps {
@@ -66,62 +102,71 @@ export function ReportFilters({
   }, [debouncedZone])
 
   return (
-    <div className="flex flex-wrap items-end gap-3">
-      <MultiSelectFilter
-        label={messages.reports.filters.status}
-        emptyLabel={messages.reports.filters.allStatuses}
-        options={REPORT_STATUS_ORDER}
-        optionLabel={(status: ReportStatus) => messages.reports.status[status]}
-        selected={filters.statuses}
-        onChange={(statuses) => onChange({ statuses })}
-      />
-      <MultiSelectFilter
-        label={messages.reports.filters.category}
-        emptyLabel={messages.reports.filters.allCategories}
-        options={REPORT_CATEGORIES}
-        optionLabel={(category: ReportCategory) => messages.reports.category[category]}
-        selected={filters.categories}
-        onChange={(categories) => onChange({ categories })}
-      />
-
-      <div className="grid gap-1.5">
-        <Label htmlFor="zone-filter">{messages.reports.filters.zone}</Label>
-        <Input
-          id="zone-filter"
-          value={zoneDraft}
-          placeholder={messages.reports.filters.zonePlaceholder}
-          onChange={(event) => setZoneDraft(event.target.value)}
-          className="w-56"
+    <div className="flex flex-wrap items-end gap-x-3 gap-y-4 rounded-xl border bg-muted/40 p-3">
+      <FilterField label={messages.reports.filters.status}>
+        <MultiSelectFilter
+          label={messages.reports.filters.status}
+          emptyLabel={messages.reports.filters.allStatuses}
+          options={REPORT_STATUS_ORDER}
+          optionLabel={(status: ReportStatus) => messages.reports.status[status]}
+          selected={filters.statuses}
+          onChange={(statuses) => onChange({ statuses })}
         />
-      </div>
+      </FilterField>
 
-      <div className="grid gap-1.5">
-        <Label htmlFor="created-from">{messages.reports.filters.createdFrom}</Label>
+      <FilterField label={messages.reports.filters.category}>
+        <MultiSelectFilter
+          label={messages.reports.filters.category}
+          emptyLabel={messages.reports.filters.allCategories}
+          options={REPORT_CATEGORIES}
+          optionLabel={(category: ReportCategory) =>
+            messages.reports.category[category]
+          }
+          selected={filters.categories}
+          onChange={(categories) => onChange({ categories })}
+        />
+      </FilterField>
+
+      <FilterField label={messages.reports.filters.zone} htmlFor="zone-filter">
+        <InputGroup className="w-56 bg-background">
+          <InputGroupAddon>
+            <Search className="size-4" aria-hidden />
+          </InputGroupAddon>
+          <InputGroupInput
+            id="zone-filter"
+            value={zoneDraft}
+            placeholder={messages.reports.filters.zonePlaceholder}
+            onChange={(event) => setZoneDraft(event.target.value)}
+          />
+        </InputGroup>
+      </FilterField>
+
+      <FilterField label={messages.reports.filters.createdFrom} htmlFor="created-from">
         <Input
           id="created-from"
           type="date"
+          className="bg-background"
           value={filters.createdFrom}
           onChange={(event) => onChange({ createdFrom: event.target.value })}
         />
-      </div>
+      </FilterField>
 
-      <div className="grid gap-1.5">
-        <Label htmlFor="created-to">{messages.reports.filters.createdTo}</Label>
+      <FilterField label={messages.reports.filters.createdTo} htmlFor="created-to">
         <Input
           id="created-to"
           type="date"
+          className="bg-background"
           value={filters.createdTo}
           onChange={(event) => onChange({ createdTo: event.target.value })}
         />
-      </div>
+      </FilterField>
 
-      <div className="grid gap-1.5">
-        <Label htmlFor="ordering">{messages.reports.filters.ordering}</Label>
+      <FilterField label={messages.reports.filters.ordering} htmlFor="ordering">
         <Select
           value={filters.ordering}
           onValueChange={(value) => onChange({ ordering: value as ReportOrdering })}
         >
-          <SelectTrigger id="ordering" className="w-48">
+          <SelectTrigger id="ordering" className="w-48 bg-background">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -132,10 +177,16 @@ export function ReportFilters({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </FilterField>
 
       {isFiltered && (
-        <Button variant="ghost" onClick={onClear}>
+        <Button
+          variant="ghost"
+          size="lg"
+          onClick={onClear}
+          className="text-muted-foreground"
+        >
+          <X className="size-4" aria-hidden />
           {messages.reports.filters.clear}
         </Button>
       )}

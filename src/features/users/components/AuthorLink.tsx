@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CalendarDays } from 'lucide-react'
+import { InitialsAvatar } from '@/components/common/InitialsAvatar'
 import { QueryState } from '@/components/common/QueryState'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -61,9 +63,17 @@ export function AuthorLink({ id, name }: AuthorLinkProps) {
           contenido, y una dirección larga estiraba el modal entero—.
         */}
         <DialogContent className="flex h-[28rem] max-h-[85vh] flex-col overflow-hidden sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{profile.data?.name || name}</DialogTitle>
-            <DialogDescription>{messages.profile.title}</DialogDescription>
+          <DialogHeader className="flex-row items-center gap-3 space-y-0">
+            <InitialsAvatar
+              name={profile.data?.name || name}
+              className="size-11 text-sm"
+            />
+            <div className="min-w-0">
+              <DialogTitle className="truncate">
+                {profile.data?.name || name}
+              </DialogTitle>
+              <DialogDescription>{messages.profile.title}</DialogDescription>
+            </div>
           </DialogHeader>
 
           <QueryState
@@ -75,7 +85,8 @@ export function AuthorLink({ id, name }: AuthorLinkProps) {
             {profile.data?.is_public ? (
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 {profile.data.date_joined && (
-                  <span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CalendarDays className="size-3.5" aria-hidden />
                     {messages.profile.memberSince}{' '}
                     {formatMonth(profile.data.date_joined)}
                   </span>
@@ -87,7 +98,7 @@ export function AuthorLink({ id, name }: AuthorLinkProps) {
             ) : (
               // Se respeta la decisión del vecino sobre su perfil, aunque quien
               // mire sea del municipio: la privacidad es del dato público.
-              <p className="text-sm text-muted-foreground">
+              <p className="rounded-lg bg-muted/60 p-3 text-sm text-muted-foreground">
                 {messages.profile.private}
               </p>
             )}
@@ -97,10 +108,10 @@ export function AuthorLink({ id, name }: AuthorLinkProps) {
             {/* Los reportes sí se muestran siempre: son de la jurisdicción que
                 esta persona ya gestiona, y los ve igual en su propio listado.
                 El perfil no le enseña nada que no tuviera a un clic. */}
-            <h3 className="shrink-0 text-sm font-medium">
+            <h3 className="shrink-0 text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
               {messages.profile.reportsHere}
             </h3>
-            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto pr-1">
               <QueryState
                 isPending={reports.isPending}
                 isError={reports.isError}
@@ -113,7 +124,7 @@ export function AuthorLink({ id, name }: AuthorLinkProps) {
                   {reports.data?.results.map((report) => (
                     <li
                       key={report.id}
-                      className="flex items-center justify-between gap-3 rounded-md border p-2"
+                      className="flex items-center justify-between gap-3 rounded-lg border p-2.5 transition-colors hover:bg-muted/50"
                     >
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">

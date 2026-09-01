@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge'
+import { InitialsAvatar } from '@/components/common/InitialsAvatar'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -9,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { messages } from '@/config/messages'
+import { cn } from '@/lib/utils'
 import type { Validator } from '../types'
 
 interface ValidatorsTableProps {
@@ -55,21 +57,44 @@ export function ValidatorsTable({
           {showMunicipality && (
             <TableHead>{messages.validators.municipality}</TableHead>
           )}
-          <TableHead className="w-40">{messages.validators.state}</TableHead>
-          <TableHead className="w-32">{messages.validators.validations}</TableHead>
+          <TableHead className="w-44">{messages.validators.state}</TableHead>
+          <TableHead className="w-28 text-right">
+            {messages.validators.validations}
+          </TableHead>
           <TableHead className="w-32" />
         </TableRow>
       </TableHeader>
       <TableBody>
         {validators.map((validator) => (
           <TableRow key={validator.id}>
-            <TableCell className="font-medium">{validator.name}</TableCell>
-            <TableCell>{validator.email}</TableCell>
+            <TableCell className="font-medium">
+              <span className="flex items-center gap-2.5">
+                <InitialsAvatar name={validator.name} />
+                {validator.name}
+              </span>
+            </TableCell>
+            <TableCell className="text-muted-foreground">{validator.email}</TableCell>
             {showMunicipality && (
               <TableCell>{validator.municipality?.city ?? '—'}</TableCell>
             )}
             <TableCell>
-              <Badge variant={validator.is_active_validator ? 'default' : 'secondary'}>
+              <Badge
+                variant="secondary"
+                className={
+                  validator.is_active_validator
+                    ? 'gap-1.5 bg-status-resolved/12 pl-1.5 text-status-resolved ring-1 ring-status-resolved/25 ring-inset'
+                    : 'gap-1.5 pl-1.5'
+                }
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    'size-1.5 rounded-full',
+                    validator.is_active_validator
+                      ? 'bg-status-resolved'
+                      : 'bg-muted-foreground',
+                  )}
+                />
                 {validator.is_active_validator
                   ? messages.validators.active
                   : messages.validators.inactive}
@@ -80,8 +105,10 @@ export function ValidatorsTable({
                 </span>
               )}
             </TableCell>
-            <TableCell>{validator.validation_count}</TableCell>
-            <TableCell>
+            <TableCell className="text-right font-medium">
+              {validator.validation_count}
+            </TableCell>
+            <TableCell className="text-right">
               <Button
                 variant="outline"
                 // Reactivar a alguien cuya municipalidad está dada de baja

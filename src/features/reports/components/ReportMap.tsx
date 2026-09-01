@@ -16,7 +16,9 @@ function useMarkerIcon() {
     () =>
       divIcon({
         className: '',
-        html: `<span class="block size-4 rounded-full border-2 border-background bg-primary shadow"></span>`,
+        // Punto sólido con un halo alrededor: sobre la textura del mapa, un
+        // círculo plano de 16px se confunde con cualquier rotonda.
+        html: `<span class="block size-4 rounded-full border-2 border-background bg-primary shadow-md ring-6 ring-primary/20"></span>`,
         iconSize: [16, 16],
         iconAnchor: [8, 8],
       }),
@@ -35,7 +37,7 @@ export function ReportMap({
 
   if (latitude === null || longitude === null) {
     return (
-      <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+      <p className="rounded-lg border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
         {messages.reportDetail.noLocation}
       </p>
     )
@@ -48,7 +50,7 @@ export function ReportMap({
       center={position}
       zoom={DEFAULT_ZOOM}
       scrollWheelZoom={false}
-      className="h-64 w-full rounded-md"
+      className="h-72 w-full rounded-lg ring-1 ring-border"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

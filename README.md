@@ -531,6 +531,40 @@ para deshabilitar cuatro, y la lógica de transiciones sigue viviendo en un solo
 lado. Un `409` significa que la vista quedó desactualizada: se avisa y se
 recarga el detalle.
 
+### Sistema visual: tokens, capa de tema y marca
+
+Toda la paleta vive en `src/index.css` como variables de shadcn. Los
+componentes usan las clases semánticas (`bg-primary`, `text-muted-foreground`,
+`bg-status-resolved`) y **nunca** escriben un color a mano.
+
+- **Los colores salen del logo de la app móvil** (`urbancheck_mobile/assets/urbancheck_logo.png`),
+  medidos sobre el archivo: azul `#0370CE` (primario), verde `#03CB95` y azul
+  petróleo `#083150`. Los neutros llevan una pizca de ese azul (hue 250) en
+  lugar de ser grises puros, para que los bordes y los textos secundarios
+  pertenezcan a la misma familia que la marca.
+- **Los estados del reporte necesitan estar en `@theme inline`.** Las variables
+  `--status-*` existían sueltas, así que `bg-status-resolved` no generaba
+  ninguna regla y todos los badges se veían grises. Una variable de color solo
+  se convierte en utilidad si está mapeada como `--color-*` dentro de
+  `@theme inline`.
+- **La capa de tema va fuera de toda capa CSS.** `src/components/ui/` lo genera
+  el CLI y no se edita a mano, así que el ajuste fino de tablas, campos y
+  diálogos se hace contra los `data-slot` que esos componentes emiten. Ese
+  bloque **no** puede ir dentro de `@layer components`: los componentes traen
+  sus medidas como clases de Tailwind (`p-2`, `px-2`, `[--card-spacing:…]`), que
+  viven en la capa `utilities`, y en la cascada una capa le gana a la anterior
+  sin importar la especificidad. Adentro de una capa, esas reglas se escriben y
+  no pintan nada. La contracara es que lo declarado ahí ya no se puede pisar con
+  una clase en el call site: por eso solo entran medidas y colores de base, y la
+  elevación de las tarjetas sí queda en `@layer components`, donde una pantalla
+  todavía puede pedir otra sombra.
+- **Los assets de marca están en `public/`** (`urbancheck-mark.png`,
+  `favicon.png`, `apple-touch-icon.png`), derivados del PNG del móvil con el
+  fondo blanco pasado a transparente. El pin se usa como
+  imagen; la palabra «UrbanCheck» se compone con tipografía en
+  `src/components/common/Brand.tsx`, para que quede nítida en cualquier tamaño y
+  siga al tema.
+
 ### `field` en lugar de `form` (shadcn)
 
 El componente `form` de shadcn quedó reemplazado por `field` en la versión

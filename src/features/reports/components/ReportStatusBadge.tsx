@@ -6,19 +6,60 @@ import { REPORT_STATUSES, type ReportStatus } from '../types'
 /**
  * Status colors come from the `--status-*` design tokens, never from a hex
  * value written in a component.
+ *
+ * Cada estado aporta dos clases: el fondo con el anillo del badge, y el color
+ * del punto. El punto es lo que hace legible el estado de un vistazo en una
+ * tabla de veinte filas —el ojo lo encuentra antes que la palabra— y además
+ * sostiene la distinción cuando el fondo es demasiado tenue para pelearla solo.
  */
-const STATUS_CLASS: Record<ReportStatus, string> = {
-  [REPORT_STATUSES.PENDING_VALIDATION]: 'bg-status-pending/15 text-status-pending',
-  [REPORT_STATUSES.REPORTED]: 'bg-status-in-progress/15 text-status-in-progress',
-  [REPORT_STATUSES.IN_PROGRESS]: 'bg-status-in-progress/25 text-status-in-progress',
-  [REPORT_STATUSES.RESOLVED]: 'bg-status-resolved/15 text-status-resolved',
-  [REPORT_STATUSES.CANCELLED]: 'bg-status-rejected/15 text-status-rejected',
-  [REPORT_STATUSES.ARCHIVED]: 'bg-muted text-muted-foreground',
+const STATUS_CLASS: Record<ReportStatus, { badge: string; dot: string }> = {
+  [REPORT_STATUSES.PENDING_VALIDATION]: {
+    badge: 'bg-status-pending/12 text-status-pending ring-status-pending/25',
+    dot: 'bg-status-pending',
+  },
+  [REPORT_STATUSES.REPORTED]: {
+    badge:
+      'bg-status-in-progress/10 text-status-in-progress ring-status-in-progress/20',
+    dot: 'bg-status-in-progress/60',
+  },
+  [REPORT_STATUSES.IN_PROGRESS]: {
+    badge:
+      'bg-status-in-progress/18 text-status-in-progress ring-status-in-progress/30',
+    dot: 'bg-status-in-progress',
+  },
+  [REPORT_STATUSES.RESOLVED]: {
+    badge: 'bg-status-resolved/12 text-status-resolved ring-status-resolved/25',
+    dot: 'bg-status-resolved',
+  },
+  [REPORT_STATUSES.CANCELLED]: {
+    badge: 'bg-status-rejected/12 text-status-rejected ring-status-rejected/25',
+    dot: 'bg-status-rejected',
+  },
+  [REPORT_STATUSES.ARCHIVED]: {
+    badge: 'bg-muted text-muted-foreground ring-border',
+    dot: 'bg-muted-foreground',
+  },
 }
 
-export function ReportStatusBadge({ status }: { status: ReportStatus }) {
+export function ReportStatusBadge({
+  status,
+  className,
+}: {
+  status: ReportStatus
+  className?: string
+}) {
+  const style = STATUS_CLASS[status]
+
   return (
-    <Badge variant="secondary" className={cn('border-0', STATUS_CLASS[status])}>
+    <Badge
+      variant="secondary"
+      className={cn(
+        'gap-1.5 border-0 pl-1.5 ring-1 ring-inset',
+        style.badge,
+        className,
+      )}
+    >
+      <span aria-hidden className={cn('size-1.5 rounded-full', style.dot)} />
       {messages.reports.status[status]}
     </Badge>
   )

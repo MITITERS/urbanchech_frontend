@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { normalizeError } from '@/api/client'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { PageHeader } from '@/components/common/PageHeader'
 import { QueryState } from '@/components/common/QueryState'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -69,18 +70,16 @@ export function AgentsPage() {
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle>{messages.agents.title}</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {municipalities.data?.length === 0
-                ? messages.agents.noMunicipalities
-                : messages.agents.description}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+    <div className="space-y-6">
+      <PageHeader
+        title={messages.agents.title}
+        description={
+          municipalities.data?.length === 0
+            ? messages.agents.noMunicipalities
+            : messages.agents.description
+        }
+        actions={
+          <>
             <Select value={municipalityFilter} onValueChange={setMunicipalityFilter}>
               <SelectTrigger
                 className="w-56"
@@ -100,22 +99,29 @@ export function AgentsPage() {
               </SelectContent>
             </Select>
             <AgentFormDialog municipalities={municipalities.data ?? []} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={tab} onValueChange={(value) => setTab(value as AccountState)}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="active">
-                {messages.agents.tabActive}
-                {active.data && ` (${active.data.length})`}
-              </TabsTrigger>
-              <TabsTrigger value="inactive">
-                {messages.agents.tabArchived}
-                {archived.data && ` (${archived.data.length})`}
-              </TabsTrigger>
-            </TabsList>
+          </>
+        }
+      />
 
-            <TabsContent value="active">
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setTab(value as AccountState)}
+        className="gap-4"
+      >
+        <TabsList>
+          <TabsTrigger value="active">
+            {messages.agents.tabActive}
+            {active.data && ` (${active.data.length})`}
+          </TabsTrigger>
+          <TabsTrigger value="inactive">
+            {messages.agents.tabArchived}
+            {archived.data && ` (${archived.data.length})`}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="active">
+          <Card>
+            <CardContent>
               <QueryState
                 isPending={active.isPending}
                 isError={active.isError}
@@ -134,10 +140,14 @@ export function AgentsPage() {
                   onAction={setPendingDeactivation}
                 />
               </QueryState>
-            </TabsContent>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <TabsContent value="inactive">
-              <p className="mb-3 text-sm text-muted-foreground">
+        <TabsContent value="inactive">
+          <Card>
+            <CardContent className="space-y-3">
+              <p className="rounded-lg bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
                 {messages.agents.archivedHint}
               </p>
               <QueryState
@@ -160,10 +170,10 @@ export function AgentsPage() {
                   onAction={(agent) => void toggle(agent, true)}
                 />
               </QueryState>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* La baja pide confirmación explícita y aclara que no borra la cuenta. */}
       <ConfirmDialog
@@ -178,6 +188,6 @@ export function AgentsPage() {
           if (pendingDeactivation) void toggle(pendingDeactivation, false)
         }}
       />
-    </>
+    </div>
   )
 }

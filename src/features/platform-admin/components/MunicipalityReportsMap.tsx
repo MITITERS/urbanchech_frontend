@@ -21,9 +21,9 @@ const STATUS_COLOR: Record<ReportStatus, string> = {
 function markerIcon(status: ReportStatus) {
   return divIcon({
     className: '',
-    html: `<span style="background:${STATUS_COLOR[status]}" class="block size-3 rounded-full border-2 border-background shadow"></span>`,
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
+    html: `<span style="background:${STATUS_COLOR[status]}" class="block size-3.5 rounded-full border-2 border-background shadow-md"></span>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
   })
 }
 
@@ -41,7 +41,7 @@ export function MunicipalityReportsMap({ municipality, markers }: Props) {
 
   if (markers.length === 0 && !hasCenter) {
     return (
-      <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+      <p className="rounded-lg border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
         {messages.municipalities.noMarkers}
       </p>
     )
@@ -56,7 +56,7 @@ export function MunicipalityReportsMap({ municipality, markers }: Props) {
       center={center}
       zoom={DEFAULT_ZOOM}
       scrollWheelZoom={false}
-      className="h-[28rem] w-full rounded-md"
+      className="h-[28rem] w-full rounded-lg ring-1 ring-border"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -66,7 +66,15 @@ export function MunicipalityReportsMap({ municipality, markers }: Props) {
         <Circle
           center={center}
           radius={Number(municipality.coverage_radius_km) * KM_TO_METERS}
-          pathOptions={{ color: 'var(--color-primary)', weight: 1, opacity: 0.6 }}
+          // El área rellena y no solo su contorno: es lo que explica de un
+          // vistazo por qué esos reportes cayeron en este municipio.
+          pathOptions={{
+            color: 'var(--color-primary)',
+            weight: 1.5,
+            opacity: 0.5,
+            fillColor: 'var(--color-primary)',
+            fillOpacity: 0.06,
+          }}
         />
       )}
       {markers.map((marker) => (

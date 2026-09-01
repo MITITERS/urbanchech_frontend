@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge'
+import { InitialsAvatar } from '@/components/common/InitialsAvatar'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -9,6 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { messages } from '@/config/messages'
+import { cn } from '@/lib/utils'
 import type { MunicipalAgent } from '../types'
 
 interface AgentsTableProps {
@@ -51,19 +53,40 @@ export function AgentsTable({
           <TableHead>{messages.agents.name}</TableHead>
           <TableHead>{messages.agents.email}</TableHead>
           <TableHead>{messages.agents.municipality}</TableHead>
-          <TableHead className="w-40">{messages.agents.state}</TableHead>
-          <TableHead className="w-32">{messages.agents.managed}</TableHead>
+          <TableHead className="w-44">{messages.agents.state}</TableHead>
+          <TableHead className="w-28 text-right">{messages.agents.managed}</TableHead>
           <TableHead className="w-32" />
         </TableRow>
       </TableHeader>
       <TableBody>
         {agents.map((agent) => (
           <TableRow key={agent.id}>
-            <TableCell className="font-medium">{agent.name}</TableCell>
-            <TableCell>{agent.email}</TableCell>
+            <TableCell className="font-medium">
+              <span className="flex items-center gap-2.5">
+                <InitialsAvatar name={agent.name} />
+                {agent.name}
+              </span>
+            </TableCell>
+            <TableCell className="text-muted-foreground">{agent.email}</TableCell>
             <TableCell>{agent.municipality?.city ?? '—'}</TableCell>
             <TableCell>
-              <Badge variant={agent.is_active_agent ? 'default' : 'secondary'}>
+              <Badge
+                variant="secondary"
+                className={
+                  agent.is_active_agent
+                    ? 'gap-1.5 bg-status-resolved/12 pl-1.5 text-status-resolved ring-1 ring-status-resolved/25 ring-inset'
+                    : 'gap-1.5 pl-1.5'
+                }
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    'size-1.5 rounded-full',
+                    agent.is_active_agent
+                      ? 'bg-status-resolved'
+                      : 'bg-muted-foreground',
+                  )}
+                />
                 {agent.is_active_agent
                   ? messages.agents.active
                   : messages.agents.inactive}
@@ -74,8 +97,10 @@ export function AgentsTable({
                 </span>
               )}
             </TableCell>
-            <TableCell>{agent.management_count}</TableCell>
-            <TableCell>
+            <TableCell className="text-right font-medium">
+              {agent.management_count}
+            </TableCell>
+            <TableCell className="text-right">
               <Button
                 variant="outline"
                 // Reactivar a alguien cuya municipalidad está dada de baja
