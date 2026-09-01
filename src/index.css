@@ -406,6 +406,21 @@
   overflow: hidden;
   font-family: var(--font-sans);
   background-color: var(--muted);
+  /*
+   * El mapa se apila dentro de sí mismo.
+   *
+   * Leaflet reparte z-index hasta 1000 entre sus panes y sus controles, y los
+   * diálogos, los popovers y los menús de shadcn viven en 50. Como todos caían
+   * en el contexto de apilado de la raíz, 1000 le ganaba a 50 y el mapa se
+   * dibujaba **encima** del perfil del vecino, del selector de localidad y de
+   * cualquier capa flotante que lo cruzara.
+   *
+   * `isolation` encierra esos z-index acá adentro: el orden interno del mapa
+   * —mosaicos, marcadores, popups, controles— queda igual, pero hacia afuera el
+   * mapa es una capa más, en su lugar natural del flujo. Bajarle el z-index a
+   * los panes de Leaflet uno por uno rompería ese orden interno.
+   */
+  isolation: isolate;
 }
 .leaflet-control-zoom {
   border: none !important;
