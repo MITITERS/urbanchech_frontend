@@ -8,8 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { BrandMark, BrandWordmark } from '@/components/common/Brand'
+import { PersonAvatar } from '@/components/common/PersonAvatar'
 import { messages } from '@/config/messages'
-import { initials } from '@/lib/format'
 import type { AuthUser } from '@/types/auth'
 
 export function Topbar({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
@@ -49,14 +49,15 @@ export function Topbar({ user, onLogout }: { user: AuthUser; onLogout: () => voi
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="lg" className="gap-2 pl-1.5">
-            {/* Las iniciales son la única pieza que identifica al usuario de un
-                vistazo: el nombre se corta en pantallas angostas. */}
-            <span
-              aria-hidden
-              className="brand-gradient flex size-7 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-semibold text-white"
-            >
-              {initials(user.name || user.email)}
-            </span>
+            {/* Sin foto quedan las iniciales sobre el degradado de la marca:
+                es lo único que identifica al usuario de un vistazo, porque el
+                nombre se corta en pantallas angostas. */}
+            <PersonAvatar
+              name={user.name || user.email}
+              src={user.avatar}
+              size="sm"
+              className="brand-gradient text-white"
+            />
             <span className="hidden max-w-40 truncate sm:inline">
               {user.name || user.email}
             </span>

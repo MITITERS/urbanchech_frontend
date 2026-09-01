@@ -29,6 +29,7 @@ function userWith(role: Role, mustChangePassword: boolean): AuthUser {
     id: 7,
     email: 'agente@villamaria.gob.ar',
     name: 'Ana Agente',
+    avatar: null,
     role,
     municipality: { id: 3, city: 'Villa María', province: 'Córdoba' },
     mustChangePassword,

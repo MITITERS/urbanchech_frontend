@@ -13,6 +13,7 @@ function buildUser(role: Role, overrides: Partial<AuthUser> = {}): AuthUser {
     id: 1,
     email: 'usuario@urbancheck.test',
     name: 'Usuario de prueba',
+    avatar: null,
     role,
     municipality: { id: 1, city: 'Villa María', province: 'Córdoba' },
     mustChangePassword: false,

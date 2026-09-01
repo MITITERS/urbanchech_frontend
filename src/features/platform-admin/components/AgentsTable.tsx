@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { InitialsAvatar } from '@/components/common/InitialsAvatar'
+import { PersonAvatar } from '@/components/common/PersonAvatar'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -63,7 +63,7 @@ export function AgentsTable({
           <TableRow key={agent.id}>
             <TableCell className="font-medium">
               <span className="flex items-center gap-2.5">
-                <InitialsAvatar name={agent.name} />
+                <PersonAvatar name={agent.name} src={agent.avatar} />
                 {agent.name}
               </span>
             </TableCell>

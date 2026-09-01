@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Clock, MapPin, ThumbsUp, User } from 'lucide-react'
-import { InitialsAvatar } from '@/components/common/InitialsAvatar'
+import { PersonAvatar } from '@/components/common/PersonAvatar'
 import { QueryState } from '@/components/common/QueryState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -157,8 +157,9 @@ export function ReportDetailPage() {
                     <ul className="space-y-4">
                       {report.comments.map((comment) => (
                         <li key={comment.id} className="flex gap-3">
-                          <InitialsAvatar
+                          <PersonAvatar
                             name={comment.author.name}
+                            src={comment.author.avatar}
                             className="mt-0.5"
                           />
                           <div className="min-w-0 flex-1">

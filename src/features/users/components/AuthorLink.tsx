@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CalendarDays } from 'lucide-react'
-import { InitialsAvatar } from '@/components/common/InitialsAvatar'
+import { PersonAvatar } from '@/components/common/PersonAvatar'
 import { QueryState } from '@/components/common/QueryState'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -64,9 +64,10 @@ export function AuthorLink({ id, name }: AuthorLinkProps) {
         */}
         <DialogContent className="flex h-[28rem] max-h-[85vh] flex-col overflow-hidden sm:max-w-lg">
           <DialogHeader className="flex-row items-center gap-3 space-y-0">
-            <InitialsAvatar
+            <PersonAvatar
               name={profile.data?.name || name}
-              className="size-11 text-sm"
+              src={profile.data?.avatar}
+              size="lg"
             />
             <div className="min-w-0">
               <DialogTitle className="truncate">

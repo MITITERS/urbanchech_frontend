@@ -86,6 +86,7 @@ describe('fetchCurrentUser', () => {
       id: 7,
       email: 'agente@villamaria.gob.ar',
       name: 'Ana Agente',
+      avatar: null,
       role: ROLES.MUNICIPAL_AGENT,
       municipality: { id: 3, city: 'Villa María', province: 'Córdoba' },
       mustChangePassword: true,

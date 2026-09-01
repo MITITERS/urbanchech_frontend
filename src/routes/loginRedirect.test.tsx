@@ -13,6 +13,7 @@ function buildUser(role: Role): AuthUser {
     id: 1,
     email: 'usuario@urbancheck.test',
     name: 'Usuario',
+    avatar: null,
     role,
     municipality:
       role === ROLES.MUNICIPAL_AGENT

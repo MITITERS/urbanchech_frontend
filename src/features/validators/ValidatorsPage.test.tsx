@@ -18,6 +18,7 @@ const ACTIVE: Validator = {
   id: 7,
   name: 'Validador Uno',
   email: 'validador@muni.gob.ar',
+  avatar: null,
   municipality: VILLA_MARIA,
   is_active_validator: true,
   validation_count: 3,

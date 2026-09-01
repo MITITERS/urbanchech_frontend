@@ -4,6 +4,8 @@ export interface Validator {
   id: number
   name: string
   email: string
+  /** Foto de perfil. Nula mientras la cuenta no haya subido ninguna. */
+  avatar: string | null
   /** Jurisdicción del validador. La necesita el admin para distinguir filas. */
   municipality: Municipality | null
   is_active_validator: boolean

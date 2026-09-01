@@ -16,6 +16,7 @@ interface BackendUser {
   id: number
   email: string
   name: string
+  avatar?: string | null
   role: string
   municipality?: { id: number; city: string; province: string } | null
   must_change_password?: boolean
@@ -43,6 +44,7 @@ function toAuthUser(user: BackendUser): AuthUser {
     id: user.id,
     email: user.email,
     name: user.name,
+    avatar: user.avatar ?? null,
     role: normalizeRole(user.role),
     municipality: user.municipality ?? null,
     mustChangePassword: user.must_change_password ?? false,

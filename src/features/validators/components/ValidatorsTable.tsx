@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { InitialsAvatar } from '@/components/common/InitialsAvatar'
+import { PersonAvatar } from '@/components/common/PersonAvatar'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -69,7 +69,7 @@ export function ValidatorsTable({
           <TableRow key={validator.id}>
             <TableCell className="font-medium">
               <span className="flex items-center gap-2.5">
-                <InitialsAvatar name={validator.name} />
+                <PersonAvatar name={validator.name} src={validator.avatar} />
                 {validator.name}
               </span>
             </TableCell>

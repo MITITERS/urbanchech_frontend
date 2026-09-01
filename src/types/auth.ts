@@ -40,6 +40,8 @@ export interface AuthUser {
   id: number
   email: string
   name: string
+  /** Foto de perfil. Nula mientras la cuenta no haya subido ninguna. */
+  avatar: string | null
   role: Role
   /** Absent for the platform admin, who is not scoped to a municipality. */
   municipality: Municipality | null

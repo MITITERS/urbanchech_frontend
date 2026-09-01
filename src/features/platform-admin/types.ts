@@ -41,6 +41,8 @@ export interface MunicipalAgent {
   id: number
   name: string
   email: string
+  /** Foto de perfil. Nula mientras la cuenta no haya subido ninguna. */
+  avatar: string | null
   municipality: MunicipalityDetail | null
   /** Baja lógica: sin esto la cuenta existe pero el panel no le responde. */
   is_active_agent: boolean
