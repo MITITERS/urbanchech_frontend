@@ -1,7 +1,10 @@
+import { Link } from 'react-router-dom'
 import { Circle, MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
+import { ArrowUpRight } from 'lucide-react'
 import { divIcon, type LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { messages } from '@/config/messages'
+import { ReportStatusBadge } from '@/features/reports/components/ReportStatusBadge'
 import { REPORT_STATUSES, type ReportStatus } from '@/features/reports/types'
 import type { MunicipalityDetail, MunicipalityReportMarker } from '../types'
 
@@ -84,18 +87,28 @@ export function MunicipalityReportsMap({ municipality, markers }: Props) {
           icon={markerIcon(marker.status)}
         >
           <Popup>
-            <span className="font-medium">
-              #{marker.number ?? marker.id} ·{' '}
-              {messages.reports.category[marker.category]}
-            </span>
-            <br />
-            {messages.reports.status[marker.status]}
-            {marker.address && (
-              <>
-                <br />
-                {marker.address}
-              </>
-            )}
+            {/*
+              El popup es la única salida del mapa hacia el reporte. Sin el
+              enlace, ubicar un reclamo y querer gestionarlo obligaba a volver
+              a la pestaña Lista y buscar el número a mano.
+            */}
+            <div className="flex min-w-44 flex-col items-start gap-1.5">
+              <span className="font-medium">
+                #{marker.number ?? marker.id} ·{' '}
+                {messages.reports.category[marker.category]}
+              </span>
+              <ReportStatusBadge status={marker.status} />
+              {marker.address && (
+                <span className="text-muted-foreground">{marker.address}</span>
+              )}
+              <Link
+                to={`/reportes/${marker.id}`}
+                className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline"
+              >
+                {messages.reports.openDetail}
+                <ArrowUpRight className="size-3.5" aria-hidden />
+              </Link>
+            </div>
           </Popup>
         </Marker>
       ))}

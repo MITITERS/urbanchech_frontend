@@ -88,6 +88,8 @@ export const messages = {
     title: 'Reportes',
     description: 'Reclamos recibidos en tu municipio.',
     empty: 'No hay reportes que coincidan con los filtros.',
+    /** Salida al detalle desde una superficie que no es la tabla: el mapa. */
+    openDetail: 'Ver el reporte',
     columns: {
       id: '#',
       category: 'Categoría',

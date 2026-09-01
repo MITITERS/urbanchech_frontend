@@ -446,3 +446,14 @@
 .leaflet-popup-close-button {
   color: var(--muted-foreground) !important;
 }
+/*
+ * Los enlaces del popup, del color del panel y no del celeste de Leaflet.
+ *
+ * `.leaflet-container a` tiene dos clases de especificidad, así que le gana a
+ * cualquier utilidad de Tailwind puesta en el call site: `text-primary` en el
+ * enlace no alcanza. Es el mismo motivo por el que la atribución de abajo
+ * también se pisa acá.
+ */
+.leaflet-popup-content a {
+  color: var(--primary) !important;
+}

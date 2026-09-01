@@ -189,6 +189,23 @@ describe('MunicipalityDetailPage, reportes', () => {
     expect(await screen.findByRole('link', { name: '#7' })).toBeInTheDocument()
   })
 
+  it('desde el mapa se llega al detalle del reporte', async () => {
+    // El popup es la única salida del mapa: sin el enlace había que volver a
+    // la pestaña Lista y buscar el número a mano.
+    const user = userEvent.setup()
+    renderWithProviders(<MunicipalityDetailPage />)
+    await screen.findByText('Villa María, Córdoba')
+
+    await user.click(screen.getByRole('tab', { name: labels.viewMap }))
+    // El marcador lo dibuja Leaflet, no React: se lo busca por su clase.
+    const marker = document.querySelector('.leaflet-marker-icon')
+    await user.click(marker as HTMLElement)
+
+    expect(
+      await screen.findByRole('link', { name: messages.reports.openDetail }),
+    ).toHaveAttribute('href', `/reportes/${MARKER.id}`)
+  })
+
   it('sin marcadores ni centro, el mapa explica por qué está vacío', async () => {
     // Un reporte sin coordenadas existe en la lista pero no se puede ubicar.
     stubApi({
