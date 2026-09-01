@@ -23,7 +23,15 @@ import type { MunicipalityDetail } from '../types'
 import { CoverageMapPicker } from './CoverageMapPicker'
 import { LocalityCombobox } from './LocalityCombobox'
 
-const DEFAULT_RADIUS_KM = 15
+/**
+ * Con qué radio arranca el formulario de alta.
+ *
+ * Deliberadamente chico: el radio decide qué reportes le caen al municipio, y
+ * un valor cómodo de fábrica se guarda sin que nadie lo mire. Arrancando en 1
+ * km, el área queda visiblemente apretada en el mapa de al lado y el
+ * administrador tiene que ensancharla a propósito.
+ */
+const DEFAULT_RADIUS_KM = 1
 const labels = messages.municipalities
 
 const schema = z.object({

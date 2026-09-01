@@ -129,7 +129,7 @@ describe('MunicipalityFormDialog', () => {
       expect(post).toHaveBeenCalledWith('/api/municipalities/', {
         city: 'Bell Ville',
         province: 'Córdoba',
-        coverage_radius_km: 15,
+        coverage_radius_km: 1,
         latitude: -32.6303,
         longitude: -62.6888,
       }),
