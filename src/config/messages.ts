@@ -40,7 +40,7 @@ export const messages = {
     province: 'Provincia',
     coverage: 'Área de cobertura',
     coverageHelp:
-      'Elegí la provincia y la ciudad: el centro se ubica solo y solo tenés que ajustar el radio. También podés hacer clic en el mapa para moverlo a mano.',
+      'Elegí la provincia y la ciudad: el mapa se ubica solo y ahí trazás el límite.',
     provincePlaceholder: 'Elegí una provincia',
     provinceLoading: 'Cargando provincias…',
     cityPlaceholder: 'Elegí una ciudad',
@@ -50,10 +50,21 @@ export const messages = {
     cityNoMatches: 'No hay ciudades con ese nombre.',
     cityUnavailable:
       'No pudimos cargar las ciudades de esa provincia. Marcá el centro en el mapa.',
-    radius: 'Radio (km)',
-    center: 'Centro',
-    centerHint: 'Hacé clic en el mapa para ubicar el centro.',
-    noCenter: 'Sin centro definido',
+    boundary: 'Límite del municipio',
+    boundaryHelp:
+      'Hacé clic en el mapa para marcar los vértices del límite. Seguí los bordes reales —un río, una ruta— para que no se pise con el municipio de al lado.',
+    boundaryEmpty: 'Todavía no marcaste ningún punto.',
+    boundaryPoints: (count: number) =>
+      count === 1 ? '1 punto marcado' : `${count} puntos marcados`,
+    boundaryTooFew: (missing: number) =>
+      missing === 1
+        ? 'Falta 1 punto para cerrar el área.'
+        : `Faltan ${missing} puntos para cerrar el área.`,
+    boundaryUndo: 'Deshacer',
+    boundaryClear: 'Borrar todo',
+    boundaryColumn: 'Límite',
+    boundaryPointsShort: (count: number) => `${count} puntos`,
+    noBoundary: 'Sin límite trazado',
     reports: 'Reportes',
     users: 'Usuarios',
     createdAt: 'Alta',
@@ -108,6 +119,7 @@ export const messages = {
       createdTo: 'Hasta',
       ordering: 'Ordenar por',
       clear: 'Limpiar filtros',
+      clearDate: 'Quitar la fecha',
       allStatuses: 'Todos los estados',
       allCategories: 'Todas las categorías',
       selected: (count: number) => `${count} seleccionados`,
@@ -122,6 +134,8 @@ export const messages = {
       summary: (from: number, to: number, total: number) => `${from}–${to} de ${total}`,
       previous: 'Anterior',
       next: 'Siguiente',
+      pageSize: 'Reportes por página',
+      perPage: (size: number) => `${size} por página`,
     },
     status: {
       pendiente_validacion: 'Pendiente de Validación',

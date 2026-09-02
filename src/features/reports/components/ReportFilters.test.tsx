@@ -34,6 +34,7 @@ const EMPTY: Filters = {
   createdTo: '',
   ordering: '-created_at',
   page: 1,
+  pageSize: 20,
 }
 
 function renderFilters(filters: Partial<Filters> = {}, isFiltered = false) {
@@ -181,20 +182,43 @@ describe('ReportFilters, zona', () => {
 })
 
 describe('ReportFilters, fechas y orden', () => {
-  it('emite la fecha desde tal cual la escribe el agente', async () => {
-    const { onChange, user } = renderFilters()
+  it('muestra la fecha como dd/mm/aaaa, no como la escribe la API', async () => {
+    // El orden de los campos no puede depender del idioma del navegador: en un
+    // filtro de rango, 09/02 y 02/09 son dos meses distintos.
+    renderFilters({ createdFrom: '2026-08-01' })
 
-    await user.type(screen.getByLabelText(labels.createdFrom), '2026-08-01')
+    // El disparador toma su nombre accesible del `<label>`, así que se lo busca
+    // por ahí y se afirma sobre lo que muestra.
+    expect(screen.getByLabelText(labels.createdFrom)).toHaveTextContent('01/08/2026')
+  })
+
+  it('sin fecha elegida muestra el formato esperado', async () => {
+    renderFilters()
+
+    expect(screen.getByLabelText(labels.createdFrom)).toHaveTextContent('dd/mm/aaaa')
+    expect(screen.getByLabelText(labels.createdTo)).toHaveTextContent('dd/mm/aaaa')
+  })
+
+  it('elegir un día en el calendario emite la fecha que espera la API', async () => {
+    const { onChange, user } = renderFilters({ createdFrom: '2026-08-15' })
+
+    await user.click(screen.getByLabelText(labels.createdFrom))
+    // El día se busca por el `data-day` de su celda, que es la fecha en crudo:
+    // el número solo no alcanza, porque el calendario muestra también los días
+    // del mes siguiente y el "1" aparece dos veces. Lo clickeable es el botón
+    // de adentro, no la celda.
+    const cell = document.querySelector('[data-day="2026-08-01"]')
+    await user.click(cell?.querySelector('button') as HTMLElement)
 
     expect(onChange).toHaveBeenLastCalledWith({ createdFrom: '2026-08-01' })
   })
 
-  it('emite la fecha hasta', async () => {
-    const { onChange, user } = renderFilters()
+  it('se puede quitar una punta del rango sin tocar el resto', async () => {
+    const { onChange, user } = renderFilters({ createdTo: '2026-08-31' })
 
-    await user.type(screen.getByLabelText(labels.createdTo), '2026-08-31')
+    await user.click(screen.getByRole('button', { name: labels.clearDate }))
 
-    expect(onChange).toHaveBeenLastCalledWith({ createdTo: '2026-08-31' })
+    expect(onChange).toHaveBeenLastCalledWith({ createdTo: '' })
   })
 
   it('cambia el orden por el valor que acepta la API', async () => {

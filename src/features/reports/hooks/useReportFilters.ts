@@ -1,7 +1,9 @@
 import { useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { DEFAULT_PAGE_SIZE } from '@/config/constants'
 import {
   DEFAULT_STATUS_FILTER,
+  PAGE_SIZE_OPTIONS,
   REPORT_CATEGORIES,
   REPORT_STATUS_ORDER,
   type ReportCategory,
@@ -19,6 +21,14 @@ const ORDERINGS: readonly ReportOrdering[] = [
 
 const DEFAULT_ORDERING: ReportOrdering = '-created_at'
 const FIRST_PAGE = 1
+
+/** Solo se acepta uno de los tamaños que el panel ofrece. */
+function parsePageSize(raw: string | null): number {
+  const size = Number(raw)
+  return (PAGE_SIZE_OPTIONS as readonly number[]).includes(size)
+    ? size
+    : DEFAULT_PAGE_SIZE
+}
 
 function parseList<T extends string>(raw: string | null, allowed: readonly T[]): T[] {
   if (raw === null) return []
@@ -59,6 +69,7 @@ export function useReportFilters() {
       ordering: (ORDERINGS.find((o) => o === searchParams.get('ordering')) ??
         DEFAULT_ORDERING) as ReportOrdering,
       page: Math.max(FIRST_PAGE, Number(searchParams.get('page')) || FIRST_PAGE),
+      pageSize: parsePageSize(searchParams.get('page_size')),
     }
   }, [searchParams])
 
@@ -82,6 +93,9 @@ export function useReportFilters() {
       if (next.createdFrom) params.set('created_from', next.createdFrom)
       if (next.createdTo) params.set('created_to', next.createdTo)
       if (next.ordering !== DEFAULT_ORDERING) params.set('ordering', next.ordering)
+      if (next.pageSize !== DEFAULT_PAGE_SIZE) {
+        params.set('page_size', String(next.pageSize))
+      }
       if (page > FIRST_PAGE) params.set('page', String(page))
 
       setSearchParams(params, { replace: true })

@@ -7,10 +7,15 @@ export type { Municipality }
  * A municipality as the admin API returns it, including its coverage area:
  * the centre and radius that decide which reports reach this city.
  */
+/** Un vértice del límite: `[latitud, longitud]`, como lo espera Leaflet. */
+export type BoundaryPoint = [number, number]
+
 export interface MunicipalityDetail extends Municipality {
+  /** Centro de la ciudad. Encuadra el mapa; el límite lo pone `boundary`. */
   latitude: string | null
   longitude: string | null
-  coverage_radius_km: string | null
+  /** Polígono del límite del municipio. Nulo mientras nadie lo trazó. */
+  boundary: BoundaryPoint[] | null
   is_active: boolean
   report_count: number
   user_count: number
@@ -22,7 +27,7 @@ export interface MunicipalityPayload {
   province: string
   latitude: number
   longitude: number
-  coverageRadiusKm: number
+  boundary: BoundaryPoint[]
 }
 
 /** Minimal payload the coverage map needs for one marker. */

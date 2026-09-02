@@ -21,6 +21,7 @@ const ROW: PanelReportRow = {
   operative_area: null,
   municipality: { id: 3, city: 'Villa María', province: 'Córdoba' },
   author: { id: 1, name: 'Vecina', avatar: null },
+  validation: null,
 }
 
 beforeEach(() => {

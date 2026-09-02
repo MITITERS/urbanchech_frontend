@@ -1,35 +1,21 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, FileText, List, MapPin, Radius, Users } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '@/api/client'
-import { endpoints } from '@/api/endpoints'
+import { ArrowLeft, FileText, List, MapPin, Spline, Users } from 'lucide-react'
 import { QueryState } from '@/components/common/QueryState'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { messages } from '@/config/messages'
-import { municipalityKeys } from '@/lib/queryKeys'
+import { useReports } from '@/features/reports/api/reports'
+import { Pagination } from '@/features/reports/components/Pagination'
+import { ReportFilters } from '@/features/reports/components/ReportFilters'
 import { ReportsTable } from '@/features/reports/components/ReportsTable'
-import type { PanelReportRow } from '@/features/reports/types'
-import type { Paginated } from '@/types/api'
+import { useReportFilters } from '@/features/reports/hooks/useReportFilters'
 import { useMunicipality, useMunicipalityReportMarkers } from './api/municipalities'
 import { MunicipalityReportsMap } from './components/MunicipalityReportsMap'
 
 const labels = messages.municipalities
-
-function useMunicipalityReports(id: number) {
-  return useQuery({
-    queryKey: [...municipalityKeys.detail(id), 'reports'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<Paginated<PanelReportRow>>(
-        endpoints.municipalities.reports(id),
-      )
-      return data
-    },
-  })
-}
 
 /**
  * Reportes de un municipio, vistos por el administrador de la plataforma.
@@ -42,7 +28,11 @@ export function MunicipalityDetailPage() {
   const { id } = useParams<{ id: string }>()
   const municipalityId = Number(id)
   const municipality = useMunicipality(municipalityId)
-  const reports = useMunicipalityReports(municipalityId)
+  // Los mismos filtros que usa el agente en su listado, acotados a este
+  // municipio. Viven en la query string, así que una vista filtrada se puede
+  // compartir y sobrevive a un refresh.
+  const { filters, update, clear, isFiltered, orderings } = useReportFilters()
+  const reports = useReports(filters, municipalityId)
   const markers = useMunicipalityReportMarkers(municipalityId)
   const [view, setView] = useState('list')
 
@@ -81,12 +71,13 @@ export function MunicipalityDetailPage() {
                 sobre qué área.
               */}
               <div className="flex flex-wrap items-center gap-2">
-                {municipality.data.coverage_radius_km && (
+                {municipality.data.boundary?.length ? (
                   <Badge variant="outline" className="h-7 gap-1.5 px-2.5 font-normal">
-                    <Radius className="size-3.5 text-muted-foreground" aria-hidden />
-                    {labels.radius}: {Number(municipality.data.coverage_radius_km)} km
+                    <Spline className="size-3.5 text-muted-foreground" aria-hidden />
+                    {labels.boundaryColumn}:{' '}
+                    {labels.boundaryPointsShort(municipality.data.boundary.length)}
                   </Badge>
-                )}
+                ) : null}
                 <Badge variant="outline" className="h-7 gap-1.5 px-2.5 font-normal">
                   <FileText className="size-3.5 text-muted-foreground" aria-hidden />
                   {labels.reports}: {municipality.data.report_count}
@@ -110,7 +101,14 @@ export function MunicipalityDetailPage() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="list">
+              <TabsContent value="list" className="space-y-4">
+                <ReportFilters
+                  filters={filters}
+                  orderings={orderings}
+                  isFiltered={isFiltered}
+                  onChange={update}
+                  onClear={clear}
+                />
                 <Card>
                   <CardContent>
                     <QueryState
@@ -119,9 +117,23 @@ export function MunicipalityDetailPage() {
                       error={reports.error}
                       onRetry={() => void reports.refetch()}
                       isEmpty={reports.data?.results.length === 0}
-                      emptyMessage={labels.noReports}
+                      // Vacío por los filtros y vacío porque el municipio no
+                      // recibió nada son cosas distintas, y la salida también:
+                      // una se arregla limpiando filtros y la otra no.
+                      emptyMessage={
+                        isFiltered ? messages.reports.empty : labels.noReports
+                      }
                     >
                       <ReportsTable reports={reports.data?.results ?? []} />
+                      <Pagination
+                        page={filters.page}
+                        pageSize={filters.pageSize}
+                        total={reports.data?.count ?? 0}
+                        hasPrevious={Boolean(reports.data?.previous)}
+                        hasNext={Boolean(reports.data?.next)}
+                        onPageChange={(page) => update({ page })}
+                        onPageSizeChange={(pageSize) => update({ pageSize })}
+                      />
                     </QueryState>
                   </CardContent>
                 </Card>

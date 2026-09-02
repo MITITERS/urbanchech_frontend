@@ -72,3 +72,41 @@ export function initials(value: string): string {
   const last = parts.length > 1 ? (parts[parts.length - 1][0] ?? '') : ''
   return (first + last).toUpperCase()
 }
+
+/**
+ * Una fecha sin hora, como la manda y la espera la API: ``aaaa-mm-dd``.
+ *
+ * No se parsea con ``new Date(value)``: esa forma interpreta ``2026-02-09``
+ * como medianoche **UTC**, y en Argentina —tres horas atrás— eso cae el día
+ * anterior. Un filtro «desde el 9» terminaba mostrándose como «08/02/2026».
+ * Partir el string y construir la fecha en horario local evita el corrimiento.
+ */
+export function parseDateOnly(value: string): Date | undefined {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+  if (!match) return undefined
+  const [, year, month, day] = match
+  const date = new Date(Number(year), Number(month) - 1, Number(day))
+  return Number.isNaN(date.getTime()) ? undefined : date
+}
+
+/** La fecha en el formato que viaja a la API. */
+export function toDateOnly(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+/**
+ * La fecha como se lee en pantalla: ``dd/mm/aaaa``, siempre.
+ *
+ * Se arma a mano y no con ``Intl``: el orden de los campos tiene que ser el
+ * mismo en cualquier navegador y con cualquier idioma configurado, que es
+ * justamente lo que no garantiza un ``input[type=date]`` nativo.
+ */
+export function formatDateOnly(value: string): string {
+  const date = parseDateOnly(value)
+  if (!date) return ''
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${day}/${month}/${date.getFullYear()}`
+}

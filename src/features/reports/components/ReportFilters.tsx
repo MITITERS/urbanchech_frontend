@@ -1,13 +1,14 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Search, X } from 'lucide-react'
+import { DateField } from '@/components/common/DateField'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -47,14 +48,18 @@ const ORDERING_LABELS: Record<ReportOrdering, string> = {
 function FilterField({
   label,
   htmlFor,
+  className,
   children,
 }: {
   label: string
   htmlFor?: string
+  className?: string
   children: ReactNode
 }) {
   return (
-    <div className="grid gap-1.5">
+    // `shrink-0` por defecto: los controles conservan su ancho y la fila no se
+    // parte en dos. El único que cede es la zona, que lo pide explícitamente.
+    <div className={cn('grid shrink-0 gap-1.5', className)}>
       <Label
         htmlFor={htmlFor}
         className="text-xs font-medium tracking-wide text-muted-foreground"
@@ -102,7 +107,12 @@ export function ReportFilters({
   }, [debouncedZone])
 
   return (
-    <div className="flex flex-wrap items-end gap-x-3 gap-y-4 rounded-xl border bg-muted/40 p-3">
+    // Una sola línea, siempre. Envolviendo, los seis filtros se acomodaban
+    // distinto según el ancho de la ventana y la barra cambiaba de alto al
+    // pasar de una fila a dos, empujando la tabla. Lo primero que cede es la
+    // zona, que se achica; recién cuando ya no entra ni así, la fila scrollea
+    // en horizontal, que deja todo alcanzable sin esconder ningún control.
+    <div className="scrollbar-thin flex items-end gap-3 overflow-x-auto rounded-xl border bg-muted/40 p-3">
       <FilterField label={messages.reports.filters.status}>
         <MultiSelectFilter
           label={messages.reports.filters.status}
@@ -127,8 +137,12 @@ export function ReportFilters({
         />
       </FilterField>
 
-      <FilterField label={messages.reports.filters.zone} htmlFor="zone-filter">
-        <InputGroup className="w-56 bg-background">
+      <FilterField
+        label={messages.reports.filters.zone}
+        htmlFor="zone-filter"
+        className="min-w-36 flex-1"
+      >
+        <InputGroup className="w-full bg-background">
           <InputGroupAddon>
             <Search className="size-4" aria-hidden />
           </InputGroupAddon>
@@ -142,22 +156,20 @@ export function ReportFilters({
       </FilterField>
 
       <FilterField label={messages.reports.filters.createdFrom} htmlFor="created-from">
-        <Input
+        <DateField
           id="created-from"
-          type="date"
           className="bg-background"
           value={filters.createdFrom}
-          onChange={(event) => onChange({ createdFrom: event.target.value })}
+          onChange={(createdFrom) => onChange({ createdFrom })}
         />
       </FilterField>
 
       <FilterField label={messages.reports.filters.createdTo} htmlFor="created-to">
-        <Input
+        <DateField
           id="created-to"
-          type="date"
           className="bg-background"
           value={filters.createdTo}
-          onChange={(event) => onChange({ createdTo: event.target.value })}
+          onChange={(createdTo) => onChange({ createdTo })}
         />
       </FilterField>
 
@@ -166,7 +178,7 @@ export function ReportFilters({
           value={filters.ordering}
           onValueChange={(value) => onChange({ ordering: value as ReportOrdering })}
         >
-          <SelectTrigger id="ordering" className="w-48 bg-background">
+          <SelectTrigger id="ordering" className="w-44 bg-background">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

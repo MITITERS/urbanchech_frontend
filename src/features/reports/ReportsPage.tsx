@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/common/PageHeader'
 import { QueryState } from '@/components/common/QueryState'
 import { Card, CardContent } from '@/components/ui/card'
 import { messages } from '@/config/messages'
-import { PAGE_SIZE, useReports } from './api/reports'
+import { useReports } from './api/reports'
 import { Pagination } from './components/Pagination'
 import { ReportFilters } from './components/ReportFilters'
 import { ReportsTable } from './components/ReportsTable'
@@ -47,11 +47,12 @@ export function ReportsPage() {
             <ReportsTable reports={query.data?.results ?? []} />
             <Pagination
               page={filters.page}
-              pageSize={PAGE_SIZE}
+              pageSize={filters.pageSize}
               total={query.data?.count ?? 0}
               hasPrevious={Boolean(query.data?.previous)}
               hasNext={Boolean(query.data?.next)}
               onPageChange={(page) => update({ page })}
+              onPageSizeChange={(pageSize) => update({ pageSize })}
             />
           </QueryState>
         </CardContent>

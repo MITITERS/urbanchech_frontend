@@ -5,7 +5,6 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -20,34 +19,27 @@ import { applyFieldErrors } from '@/lib/forms'
 import { useLocalities, useProvinces } from '../api/geo'
 import { useCreateMunicipality, useUpdateMunicipality } from '../api/municipalities'
 import type { MunicipalityDetail } from '../types'
-import { CoverageMapPicker } from './CoverageMapPicker'
+import { CoverageBoundaryPicker } from './CoverageBoundaryPicker'
 import { LocalityCombobox } from './LocalityCombobox'
 
-/**
- * Con qué radio arranca el formulario de alta.
- *
- * Deliberadamente chico: el radio decide qué reportes le caen al municipio, y
- * un valor cómodo de fábrica se guarda sin que nadie lo mire. Arrancando en 1
- * km, el área queda visiblemente apretada en el mapa de al lado y el
- * administrador tiene que ensancharla a propósito.
- */
-const DEFAULT_RADIUS_KM = 1
+/** Mínimo para encerrar área. El backend valida lo mismo. */
+const MIN_BOUNDARY_POINTS = 3
 const labels = messages.municipalities
 
 const schema = z.object({
   province: z.string().trim().min(1, 'Elegí la provincia.'),
   city: z.string().trim().min(1, 'Elegí la ciudad.'),
-  coverageRadiusKm: z
-    .number({ message: 'Ingresá un radio válido.' })
-    .positive('El radio tiene que ser mayor a cero.'),
-  latitude: z.number({ message: 'Marcá el centro en el mapa.' }),
-  longitude: z.number({ message: 'Marcá el centro en el mapa.' }),
+  latitude: z.number({ message: 'Elegí la ciudad para ubicar el mapa.' }),
+  longitude: z.number({ message: 'Elegí la ciudad para ubicar el mapa.' }),
+  boundary: z
+    .array(z.tuple([z.number(), z.number()]))
+    .min(MIN_BOUNDARY_POINTS, 'Trazá el límite: hacen falta al menos tres puntos.'),
 })
 
 type MunicipalityForm = z.infer<typeof schema>
 
 /** Nombres de campo de la API -> nombres del formulario. */
-const FIELD_MAP = { coverage_radius_km: 'coverageRadiusKm' } as const
+const FIELD_MAP = {} as const
 
 interface Props {
   /** Presente para editar; ausente para dar de alta. */
@@ -75,9 +67,7 @@ export function MunicipalityFormDialog({ municipality, trigger }: Props) {
     defaultValues: {
       province: municipality?.province ?? '',
       city: municipality?.city ?? '',
-      coverageRadiusKm: municipality?.coverage_radius_km
-        ? Number(municipality.coverage_radius_km)
-        : DEFAULT_RADIUS_KM,
+      boundary: municipality?.boundary ?? [],
       latitude: municipality?.latitude
         ? Number(municipality.latitude)
         : (undefined as unknown as number),
@@ -91,7 +81,7 @@ export function MunicipalityFormDialog({ municipality, trigger }: Props) {
   const city = useWatch({ control: form.control, name: 'city' })
   const latitude = useWatch({ control: form.control, name: 'latitude' })
   const longitude = useWatch({ control: form.control, name: 'longitude' })
-  const radius = useWatch({ control: form.control, name: 'coverageRadiusKm' })
+  const boundary = useWatch({ control: form.control, name: 'boundary' })
 
   const provincesQuery = useProvinces()
   // Al editar, la provincia viene guardada por nombre: se resuelve su id contra
@@ -224,47 +214,24 @@ export function MunicipalityFormDialog({ municipality, trigger }: Props) {
         />
       )}
 
-      <Controller
-        control={form.control}
-        name="coverageRadiusKm"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor={field.name}>{labels.radius}</FieldLabel>
-            <Input
-              id={field.name}
-              name={field.name}
-              ref={field.ref}
-              onBlur={field.onBlur}
-              type="number"
-              min={1}
-              step={1}
-              value={Number.isFinite(field.value) ? field.value : ''}
-              // `valueAsNumber` da NaN con el input vacío: se propaga tal cual
-              // para que Zod lo rechace en vez de guardar un radio inválido.
-              onChange={(event) => field.onChange(event.target.valueAsNumber)}
-              aria-invalid={fieldState.invalid}
-            />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
-
-      <Field data-invalid={form.formState.errors.latitude !== undefined}>
-        <FieldLabel htmlFor="coverage-map">{labels.coverage}</FieldLabel>
-        <FieldDescription>{labels.coverageHelp}</FieldDescription>
+      <Field data-invalid={form.formState.errors.boundary !== undefined}>
+        <FieldLabel htmlFor="coverage-map">{labels.boundary}</FieldLabel>
+        <FieldDescription>{labels.boundaryHelp}</FieldDescription>
         <div id="coverage-map">
-          <CoverageMapPicker
-            latitude={typeof latitude === 'number' ? latitude : null}
-            longitude={typeof longitude === 'number' ? longitude : null}
-            radiusKm={Number.isFinite(radius) ? radius : 0}
-            onPick={(lat, lng) => {
-              form.setValue('latitude', lat, { shouldValidate: true })
-              form.setValue('longitude', lng, { shouldValidate: true })
-            }}
+          <CoverageBoundaryPicker
+            center={
+              typeof latitude === 'number' && typeof longitude === 'number'
+                ? [latitude, longitude]
+                : null
+            }
+            boundary={boundary ?? []}
+            onChange={(points) =>
+              form.setValue('boundary', points, { shouldValidate: true })
+            }
           />
         </div>
-        {form.formState.errors.latitude && (
-          <FieldError errors={[form.formState.errors.latitude]} />
+        {form.formState.errors.boundary && (
+          <FieldError errors={[form.formState.errors.boundary]} />
         )}
       </Field>
     </FormDialog>

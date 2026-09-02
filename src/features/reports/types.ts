@@ -49,6 +49,17 @@ export interface ReportAuthor {
   avatar: string | null
 }
 
+/** Qué decidió un validador sobre un reporte, y cuándo. */
+export interface ReportValidation {
+  /**
+   * Quién decidió. Viaja en el detalle; en el listado va nulo, porque ahí ya se
+   * está filtrando por un validador y repetirlo por fila no aporta.
+   */
+  validator: ReportAuthor | null
+  decided_at: string
+  outcome: 'validado' | 'rechazado'
+}
+
 export interface PanelReportRow {
   id: number
   /**
@@ -67,10 +78,25 @@ export interface PanelReportRow {
   /** Jurisdicción del reporte. La necesita el admin para distinguir filas. */
   municipality: Municipality | null
   author: ReportAuthor
+  /**
+   * Solo llega al pedir el listado con `validated_by`: es la única consulta en
+   * la que hay un validador del que hablar. El estado del reporte no lo
+   * reemplaza —uno validado y cancelado después figura igual que uno
+   * rechazado—.
+   */
+  validation: ReportValidation | null
 }
 
 /** Ordering values accepted by the API. */
 export type ReportOrdering = 'created_at' | '-created_at' | 'like_count' | '-like_count'
+
+/**
+ * Tamaños de página que ofrece el panel.
+ *
+ * El tope lo pone el backend (`PanelPagination.max_page_size`): pedir más de
+ * eso no trae más filas, así que ofrecerlo sería mentir.
+ */
+export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const
 
 export interface ReportFilters {
   statuses: ReportStatus[]
@@ -80,6 +106,8 @@ export interface ReportFilters {
   createdTo: string
   ordering: ReportOrdering
   page: number
+  /** Cuántas filas por página. Lo elige quien mira, no el servidor. */
+  pageSize: number
 }
 
 export const TRANSITION_OPERATIONS = [
@@ -134,4 +162,13 @@ export interface PanelReportDetail {
   comments: ReportComment[]
   status_history: StatusHistoryEntry[]
   available_transitions: AvailableTransition[]
+  /**
+   * Qué decidió el validador que salió a mirarlo. Nulo si nadie lo decidió.
+   *
+   * Lo resuelve el servidor y no el panel: `reactivar` deja el reporte en
+   * *Reportado* y `cancelar` lo deja en *Cancelado*, pero las dos las ejecuta
+   * un agente, así que deducirlo del historial haría pasar a ese agente por
+   * validador.
+   */
+  validation: ReportValidation | null
 }

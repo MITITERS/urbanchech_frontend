@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Circle, MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
+import { MapContainer, Marker, Polygon, Popup, TileLayer } from 'react-leaflet'
 import { ArrowUpRight } from 'lucide-react'
 import { divIcon, type LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -9,7 +9,6 @@ import { REPORT_STATUSES, type ReportStatus } from '@/features/reports/types'
 import type { MunicipalityDetail, MunicipalityReportMarker } from '../types'
 
 const DEFAULT_ZOOM = 13
-const KM_TO_METERS = 1000
 
 /** Un color por estado, tomado de los tokens del proyecto. */
 const STATUS_COLOR: Record<ReportStatus, string> = {
@@ -65,12 +64,12 @@ export function MunicipalityReportsMap({ municipality, markers }: Props) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {hasCenter && municipality.coverage_radius_km && (
-        <Circle
-          center={center}
-          radius={Number(municipality.coverage_radius_km) * KM_TO_METERS}
+      {municipality.boundary && municipality.boundary.length > 0 && (
+        <Polygon
+          positions={municipality.boundary}
           // El área rellena y no solo su contorno: es lo que explica de un
-          // vistazo por qué esos reportes cayeron en este municipio.
+          // vistazo por qué esos reportes cayeron en este municipio y no en el
+          // de al lado.
           pathOptions={{
             color: 'var(--color-primary)',
             weight: 1.5,

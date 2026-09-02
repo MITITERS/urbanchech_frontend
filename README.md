@@ -382,11 +382,19 @@ El dato llega en `is_work_account_active` desde `/api/users/me/`, y se asume
 habilitada si el campo no viene: es lo que hacía un backend anterior a la baja
 lógica de agentes.
 
-### Alta de municipalidad: provincia → ciudad → radio
+### Alta de municipalidad: provincia → ciudad → límite
 
 El alta es una cascada: se elige la provincia de una lista, eso carga sus
-localidades, y elegir una deja puesto el centro del área de cobertura con el
-**centroide oficial**. Al administrador solo le queda ajustar el radio.
+localidades, y elegir una encuadra el mapa en el **centroide oficial** de la
+ciudad. Ahí el administrador traza el límite haciendo clic: cada clic agrega un
+vértice, y a partir del tercero el polígono se cierra solo.
+
+Antes esto era un círculo con un radio en kilómetros, y no alcanzaba. Villa
+María y Villa Nueva están pegadas y las separa el río Ctalamochita: cualquier
+círculo lo bastante grande para cubrir una entera se comía parte de la otra,
+porque un círculo no puede saber que hay un límite en el medio. El polígono sí
+sigue ese límite, y por eso la ayuda del campo pide explícitamente seguir los
+bordes reales.
 
 El catálogo sale de [Georef](https://apis.datos.gob.ar/georef/), el servicio de
 división política del Estado argentino, y llega **proxeado por el backend**
@@ -454,6 +462,39 @@ Es lo que hace que el filtro se aplique **sobre** el queryset ya acotado por
 jurisdicción: un agente ve lo que esa persona reportó en su municipio, nunca su
 actividad en otro.
 
+### Quién decidió el reporte en terreno, y su perfil
+
+El detalle muestra **quién salió a mirarlo y qué decidió** —«Validó» o
+«Rechazó»—, junto a la fecha y al vecino que lo creó. Lo ven los dos roles del
+panel, que es lo que hace falta para poder preguntarle a esa persona.
+
+El dato ya viajaba dentro del historial de cambios, pero ahí está mezclado con
+las acciones del municipio y sin distinguir quién es cada uno: había que leer la
+lista entera y saber que «Pendiente de Validación → Reportado» es la validación.
+
+**Lo resuelve el servidor** (`validation`), no el panel. Deducirlo del historial
+por el estado de llegada estaría mal por partida doble: `reactivar` también deja
+el reporte en _Reportado_ y `cancelar` también lo deja en _Cancelado_, pero las
+dos las ejecuta un agente desde el panel. La decisión se identifica por la
+transición completa, desde _Pendiente de validación_.
+
+#### El perfil del validador
+
+Tocar su nombre abre un diálogo con **lo que decidió en tu jurisdicción**, con
+el mismo patrón que el perfil del vecino: es un diálogo y no una ruta porque
+quien lo abre está mirando un reporte, y mandarlo a otra pantalla le hace perder
+eso de vista. La consulta se dispara solo al abrir.
+
+Lo que cambia respecto del vecino es qué se lista: al vecino se le muestran los
+reportes que **creó**; al validador, los que **decidió**.
+
+Cada fila lleva dos insignias, y no son lo mismo: **qué decidió el validador** y
+**cómo terminó el reporte**. Uno que él validó y el municipio canceló después
+figura como _Cancelado_, igual que uno que él rechazó — sin separarlos, el
+perfil le atribuiría un rechazo que no hizo. Por eso el listado del panel anota
+la decisión por fila cuando se lo filtra con `?validated_by=`, en lugar de
+dejar que el panel la deduzca del estado.
+
 ### El «volver» del detalle depende del rol
 
 Los dos roles llegan al detalle de un reporte desde lugares distintos, así que el
@@ -499,8 +540,18 @@ La vista dentro de cada municipalidad sigue existiendo y está acotada al rol
 en mapa, igual que la app móvil. Es la lectura en contexto de un municipio; el
 listado de `/reportes` es la de gestión.
 
-El mapa dibuja además el área de cobertura del municipio, porque el círculo y
-los puntos juntos explican por qué esos reportes y no otros cayeron ahí.
+La lista es **la misma que la del agente**, con sus filtros, su orden y su
+paginado: sale del mismo `/api/panel/reports/` acotado con `?municipality=<id>`,
+no de un endpoint aparte. Tener dos listas distintas terminaba en que el
+administrador miraba los reportes de un municipio sin poder filtrarlos, que era
+justo lo que sí podía hacer el agente sobre los mismos datos.
+
+El filtro por municipalidad no es un agujero en la jurisdicción: el backend lo
+aplica sobre el queryset que la capa de jurisdicción ya acotó, así que a un
+agente solo podría achicarle la lista, nunca mostrarle otra.
+
+El mapa dibuja además el límite del municipio, porque el polígono y los puntos
+juntos explican por qué esos reportes y no otros cayeron ahí.
 
 ### Superficie de API propia para el panel
 

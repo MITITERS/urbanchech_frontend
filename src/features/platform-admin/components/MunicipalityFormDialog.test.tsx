@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiClient, createApiError } from '@/api/client'
@@ -27,7 +27,12 @@ const EXISTING: MunicipalityDetail = {
   province: 'Córdoba',
   latitude: '-32.410600',
   longitude: '-63.243600',
-  coverage_radius_km: '15.00',
+  boundary: [
+    [-32.39, -63.26],
+    [-32.39, -63.22],
+    [-32.43, -63.22],
+    [-32.43, -63.26],
+  ] as [number, number][],
   is_active: true,
   report_count: 2,
   user_count: 1,
@@ -64,6 +69,25 @@ async function pickCordobaAnd(city: string, user: ReturnType<typeof userEvent.se
 beforeEach(() => {
   mockCatalog()
 })
+
+/**
+ * Traza un polígono haciendo clic sobre el mapa.
+ *
+ * Leaflet escucha el clic sobre su contenedor, así que se lo dispara ahí. En
+ * jsdom no hay layout: todos los clics resuelven a la misma coordenada, y da
+ * igual — lo que se prueba es cuántos vértices quedaron, no dónde.
+ *
+ * Va con `fireEvent` y no con `userEvent`: éste simula el puntero completo, y
+ * dos clics seguidos sobre el mismo elemento le hacen sintetizar un doble clic
+ * que Leaflet intenta convertir en coordenadas. Sin layout eso da `NaN` y
+ * revienta dentro de la librería.
+ */
+function drawBoundary(points = 3) {
+  const map = document.querySelector('.leaflet-container') as HTMLElement
+  for (let index = 0; index < points; index += 1) {
+    fireEvent.click(map)
+  }
+}
 
 describe('MunicipalityFormDialog', () => {
   it('pide provincia y ciudad, no nombre y localidad', async () => {
@@ -122,17 +146,20 @@ describe('MunicipalityFormDialog', () => {
     renderWithProviders(<MunicipalityFormDialog trigger={trigger('Abrir')} />)
     const user = await openDialog('Abrir')
     await pickCordobaAnd('Bell Ville', user)
+    drawBoundary()
     await user.click(screen.getByRole('button', { name: messages.common.save }))
 
-    // El centroide oficial llega solo: alcanza con guardar.
+    // El centroide oficial llega solo: solo hay que trazar el límite.
     await waitFor(() =>
-      expect(post).toHaveBeenCalledWith('/api/municipalities/', {
-        city: 'Bell Ville',
-        province: 'Córdoba',
-        coverage_radius_km: 1,
-        latitude: -32.6303,
-        longitude: -62.6888,
-      }),
+      expect(post).toHaveBeenCalledWith(
+        '/api/municipalities/',
+        expect.objectContaining({
+          city: 'Bell Ville',
+          province: 'Córdoba',
+          latitude: -32.6303,
+          longitude: -62.6888,
+        }),
+      ),
     )
   })
 
@@ -163,20 +190,56 @@ describe('MunicipalityFormDialog', () => {
     expect(post).not.toHaveBeenCalled()
   })
 
-  it('rechaza un radio que no sea positivo', async () => {
+  it('no se puede guardar sin haber trazado el límite', async () => {
     const post = vi.spyOn(apiClient, 'post')
 
     renderWithProviders(<MunicipalityFormDialog trigger={trigger('Abrir')} />)
     const user = await openDialog('Abrir')
-    const radius = await screen.findByLabelText(labels.radius)
-    await user.clear(radius)
-    await user.type(radius, '0')
+    await pickCordobaAnd('Bell Ville', user)
     await user.click(screen.getByRole('button', { name: messages.common.save }))
 
     expect(
-      await screen.findByText('El radio tiene que ser mayor a cero.'),
+      await screen.findByText('Trazá el límite: hacen falta al menos tres puntos.'),
     ).toBeInTheDocument()
     expect(post).not.toHaveBeenCalled()
+  })
+
+  it('dos puntos tampoco alcanzan: no encierran área', async () => {
+    const post = vi.spyOn(apiClient, 'post')
+
+    renderWithProviders(<MunicipalityFormDialog trigger={trigger('Abrir')} />)
+    const user = await openDialog('Abrir')
+    await pickCordobaAnd('Bell Ville', user)
+    drawBoundary(2)
+    await user.click(screen.getByRole('button', { name: messages.common.save }))
+
+    expect(
+      await screen.findByText('Trazá el límite: hacen falta al menos tres puntos.'),
+    ).toBeInTheDocument()
+    expect(post).not.toHaveBeenCalled()
+  })
+
+  it('deshacer saca el último punto marcado', async () => {
+    renderWithProviders(<MunicipalityFormDialog trigger={trigger('Abrir')} />)
+    const user = await openDialog('Abrir')
+    await pickCordobaAnd('Bell Ville', user)
+    drawBoundary(3)
+    expect(await screen.findByText(labels.boundaryPoints(3))).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: labels.boundaryUndo }))
+
+    expect(await screen.findByText(labels.boundaryTooFew(1))).toBeInTheDocument()
+  })
+
+  it('borrar todo deja el límite vacío', async () => {
+    renderWithProviders(<MunicipalityFormDialog trigger={trigger('Abrir')} />)
+    const user = await openDialog('Abrir')
+    await pickCordobaAnd('Bell Ville', user)
+    drawBoundary(3)
+
+    await user.click(screen.getByRole('button', { name: labels.boundaryClear }))
+
+    expect(await screen.findByText(labels.boundaryEmpty)).toBeInTheDocument()
   })
 
   it('cae a escribir el nombre a mano si Georef no responde', async () => {
@@ -207,23 +270,24 @@ describe('MunicipalityFormDialog', () => {
     expect(await screen.findByText(message)).toBeInTheDocument()
   })
 
-  it('al editar conserva el centro que ya tenía', async () => {
+  it('al editar llega con el límite que ya tenía trazado', async () => {
     const patch = vi.spyOn(apiClient, 'patch').mockResolvedValue({ data: EXISTING })
 
     renderWithProviders(
       <MunicipalityFormDialog municipality={EXISTING} trigger={trigger('Editar')} />,
     )
     const user = await openDialog('Editar')
-    const radius = await screen.findByLabelText(labels.radius)
-    await user.clear(radius)
-    await user.type(radius, '25')
+    // Los cuatro vértices guardados ya están puestos: editar no obliga a
+    // volver a trazar desde cero.
+    expect(await screen.findByText(labels.boundaryPoints(4))).toBeInTheDocument()
+
     await user.click(screen.getByRole('button', { name: messages.common.save }))
 
     await waitFor(() =>
       expect(patch).toHaveBeenCalledWith('/api/municipalities/4/', {
         city: 'Villa María',
         province: 'Córdoba',
-        coverage_radius_km: 25,
+        boundary: EXISTING.boundary,
         latitude: Number(EXISTING.latitude),
         longitude: Number(EXISTING.longitude),
       }),

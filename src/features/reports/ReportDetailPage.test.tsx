@@ -28,6 +28,7 @@ const DETAIL: PanelReportDetail = {
   comments: [],
   status_history: [],
   available_transitions: [],
+  validation: null,
 }
 
 const { mockedRole } = vi.hoisted(() => ({

@@ -10,6 +10,7 @@ import type { PanelReportRow, ReportFilters } from '../types'
 export function toQueryParams(filters: ReportFilters): Record<string, string> {
   const params: Record<string, string> = {
     page: String(filters.page),
+    page_size: String(filters.pageSize),
     ordering: filters.ordering,
   }
   if (filters.statuses.length > 0) params.status = filters.statuses.join(',')
@@ -20,15 +21,29 @@ export function toQueryParams(filters: ReportFilters): Record<string, string> {
   return params
 }
 
-export function useReports(filters: ReportFilters) {
+/**
+ * El listado del panel, con sus filtros.
+ *
+ * `municipalityId` lo manda **solo el administrador de la plataforma**, que ve
+ * todas las jurisdicciones y mira los reportes municipio por municipio. No es
+ * un agujero: el backend aplica ese filtro sobre el queryset que la capa de
+ * jurisdicción ya acotó, así que a un agente solo podría achicarle la lista,
+ * nunca mostrarle otra.
+ */
+export function useReports(filters: ReportFilters, municipalityId?: number) {
+  const params = {
+    ...toQueryParams(filters),
+    ...(municipalityId === undefined ? {} : { municipality: String(municipalityId) }),
+  }
+
   return useQuery({
     // The filters are part of the key, so each combination caches separately
     // and `invalidateQueries(['reportes'])` still refreshes all of them.
-    queryKey: reportKeys.list(toQueryParams(filters)),
+    queryKey: reportKeys.list(params),
     queryFn: async () => {
       const { data } = await apiClient.get<Paginated<PanelReportRow>>(
         endpoints.panelReports.list,
-        { params: toQueryParams(filters) },
+        { params },
       )
       return data
     },

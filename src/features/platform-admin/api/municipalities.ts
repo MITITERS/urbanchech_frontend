@@ -16,9 +16,7 @@ function toApiBody(payload: Partial<MunicipalityPayload>) {
     ...(payload.province !== undefined && { province: payload.province }),
     ...(payload.latitude !== undefined && { latitude: payload.latitude }),
     ...(payload.longitude !== undefined && { longitude: payload.longitude }),
-    ...(payload.coverageRadiusKm !== undefined && {
-      coverage_radius_km: payload.coverageRadiusKm,
-    }),
+    ...(payload.boundary !== undefined && { boundary: payload.boundary }),
   }
 }
 

@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
+import { DEFAULT_PAGE_SIZE } from '@/config/constants'
 import { DEFAULT_STATUS_FILTER, REPORT_STATUSES } from '../types'
 import { useReportFilters } from './useReportFilters'
 
@@ -90,5 +91,43 @@ describe('useReportFilters', () => {
     expect(result.current.location.search).toBe('')
     expect(result.current.filters.statuses).toEqual([...DEFAULT_STATUS_FILTER])
     expect(result.current.isFiltered).toBe(false)
+  })
+
+  it('defaults to the page size the API uses', () => {
+    const { result } = renderFilters()
+
+    expect(result.current.filters.pageSize).toBe(DEFAULT_PAGE_SIZE)
+  })
+
+  it('reads the page size from the query string', () => {
+    const { result } = renderFilters('/reportes?page_size=50')
+
+    expect(result.current.filters.pageSize).toBe(50)
+  })
+
+  it('only accepts a size the panel actually offers', () => {
+    // Llega de la URL, así que puede ser cualquier cosa: un valor fuera de la
+    // lista pediría al backend algo que va a recortar de todos modos.
+    const { result } = renderFilters('/reportes?page_size=7')
+
+    expect(result.current.filters.pageSize).toBe(DEFAULT_PAGE_SIZE)
+  })
+
+  it('keeps the default out of the URL', () => {
+    const { result } = renderFilters('/reportes?page_size=50')
+
+    act(() => result.current.update({ pageSize: DEFAULT_PAGE_SIZE }))
+
+    expect(result.current.location.search).not.toContain('page_size')
+  })
+
+  it('changing the page size goes back to the first page', () => {
+    // Estar en la página 7 de un recorte que ya no existe es un callejón.
+    const { result } = renderFilters('/reportes?page=7')
+
+    act(() => result.current.update({ pageSize: 50 }))
+
+    expect(result.current.filters.page).toBe(1)
+    expect(result.current.location.search).toContain('page_size=50')
   })
 })

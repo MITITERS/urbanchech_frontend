@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, Radius, Users } from 'lucide-react'
+import { ArrowUpRight, Spline, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { PageHeader } from '@/components/common/PageHeader'
@@ -70,7 +70,7 @@ export function MunicipalitiesPage() {
                 <TableRow>
                   <TableHead>{labels.city}</TableHead>
                   <TableHead>{labels.province}</TableHead>
-                  <TableHead className="w-36">{labels.radius}</TableHead>
+                  <TableHead className="w-40">{labels.boundaryColumn}</TableHead>
                   <TableHead className="w-24 text-right">{labels.reports}</TableHead>
                   <TableHead className="w-24 text-right">{labels.users}</TableHead>
                   <TableHead className="w-32">{labels.createdAt}</TableHead>
@@ -97,16 +97,20 @@ export function MunicipalitiesPage() {
                       {municipality.province}
                     </TableCell>
                     <TableCell>
-                      {municipality.coverage_radius_km ? (
+                      {municipality.boundary?.length ? (
                         <span className="inline-flex items-center gap-1.5">
-                          <Radius
+                          <Spline
                             className="size-3.5 text-muted-foreground"
                             aria-hidden
                           />
-                          {`${Number(municipality.coverage_radius_km)} km`}
+                          {labels.boundaryPointsShort(municipality.boundary.length)}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">{labels.noCenter}</span>
+                        // Sin límite no recibe reportes: no es un detalle
+                        // cosmético y por eso se dice, no se deja en blanco.
+                        <span className="text-muted-foreground">
+                          {labels.noBoundary}
+                        </span>
                       )}
                     </TableCell>
                     <TableCell className="text-right font-medium">

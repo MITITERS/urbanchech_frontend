@@ -24,7 +24,12 @@ function municipality(id: number, city: string): MunicipalityDetail {
     province: 'Córdoba',
     latitude: '-32.41',
     longitude: '-63.24',
-    coverage_radius_km: '15.00',
+    boundary: [
+      [-32.39, -63.26],
+      [-32.39, -63.22],
+      [-32.43, -63.22],
+      [-32.43, -63.26],
+    ] as [number, number][],
     is_active: true,
     report_count: 0,
     user_count: 0,

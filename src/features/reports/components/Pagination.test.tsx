@@ -10,6 +10,7 @@ const labels = messages.reports.pagination
 
 function renderPagination(props: Partial<Parameters<typeof Pagination>[0]> = {}) {
   const onPageChange = vi.fn()
+  const onPageSizeChange = vi.fn()
   render(
     <Pagination
       page={1}
@@ -18,10 +19,11 @@ function renderPagination(props: Partial<Parameters<typeof Pagination>[0]> = {})
       hasPrevious={false}
       hasNext
       onPageChange={onPageChange}
+      onPageSizeChange={onPageSizeChange}
       {...props}
     />,
   )
-  return { onPageChange, user: userEvent.setup() }
+  return { onPageChange, onPageSizeChange, user: userEvent.setup() }
 }
 
 describe('Pagination', () => {
@@ -34,6 +36,7 @@ describe('Pagination', () => {
         hasPrevious={false}
         hasNext={false}
         onPageChange={vi.fn()}
+        onPageSizeChange={vi.fn()}
       />,
     )
 
@@ -80,5 +83,29 @@ describe('Pagination', () => {
     await user.click(screen.getByRole('button', { name: labels.previous }))
 
     expect(onPageChange).toHaveBeenCalledWith(1)
+  })
+})
+
+describe('Pagination, filas por página', () => {
+  it('muestra cuántas filas se están trayendo', () => {
+    renderPagination({ pageSize: 50 })
+
+    expect(screen.getByLabelText(labels.pageSize)).toHaveTextContent(labels.perPage(50))
+  })
+
+  it('elegir otro tamaño lo emite', async () => {
+    const { onPageSizeChange, user } = renderPagination()
+
+    await user.click(screen.getByLabelText(labels.pageSize))
+    await user.click(await screen.findByRole('option', { name: labels.perPage(50) }))
+
+    expect(onPageSizeChange).toHaveBeenCalledWith(50)
+  })
+
+  it('el resumen cuenta con el tamaño elegido', () => {
+    // «21–40 de 45» y no «21–45»: lo que se ve es una página, no el resto.
+    renderPagination({ page: 2, pageSize: 20, total: 45 })
+
+    expect(screen.getByText(labels.summary(21, 40, 45))).toBeInTheDocument()
   })
 })

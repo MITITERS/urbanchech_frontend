@@ -44,7 +44,7 @@ export function MultiSelectFilter<T extends string>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" aria-label={label}>
+        <Button variant="outline" size="lg" aria-label={label} className="max-w-52">
           <span className="truncate">{summary}</span>
           <ChevronDown className="size-4" aria-hidden />
         </Button>

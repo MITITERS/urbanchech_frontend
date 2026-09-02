@@ -25,7 +25,12 @@ const VILLA_MARIA: MunicipalityDetail = {
   province: 'Córdoba',
   latitude: '-32.410300',
   longitude: '-63.240000',
-  coverage_radius_km: '15.00',
+  boundary: [
+    [-32.39, -63.26],
+    [-32.39, -63.22],
+    [-32.43, -63.22],
+    [-32.43, -63.26],
+  ] as [number, number][],
   is_active: true,
   report_count: 2,
   user_count: 4,
@@ -45,6 +50,7 @@ const REPORT: PanelReportRow = {
   operative_area: 'Obras Públicas',
   municipality: VILLA_MARIA,
   author: { id: 1, name: 'Vecina', avatar: null },
+  validation: null,
 }
 
 const MARKER: MunicipalityReportMarker = {
@@ -99,8 +105,45 @@ describe('MunicipalityDetailPage, cabecera', () => {
     renderWithProviders(<MunicipalityDetailPage />)
 
     await waitFor(() => expect(get).toHaveBeenCalledWith('/api/municipalities/3/'))
-    expect(get).toHaveBeenCalledWith('/api/municipalities/3/reports/')
     expect(get).toHaveBeenCalledWith('/api/municipalities/3/reports/map/')
+  })
+
+  it('pide los reportes por el listado del panel, acotados a este municipio', async () => {
+    // Es el mismo endpoint que usa el agente: así el admin hereda los filtros,
+    // el orden y el paginado en lugar de tener una lista aparte sin nada.
+    const get = stubApi()
+
+    renderWithProviders(<MunicipalityDetailPage />)
+
+    await waitFor(() =>
+      expect(get).toHaveBeenCalledWith(
+        '/api/panel/reports/',
+        expect.objectContaining({
+          params: expect.objectContaining({ municipality: '3' }),
+        }),
+      ),
+    )
+  })
+
+  it('filtrar acota este municipio y no lo abandona', async () => {
+    const get = stubApi()
+    const user = userEvent.setup()
+    renderWithProviders(<MunicipalityDetailPage />)
+    await screen.findByText('Villa María, Córdoba')
+
+    await user.click(
+      screen.getByRole('button', { name: messages.reports.filters.category }),
+    )
+    await user.click(await screen.findByRole('menuitemcheckbox', { name: 'Bache' }))
+
+    await waitFor(() =>
+      expect(get).toHaveBeenCalledWith(
+        '/api/panel/reports/',
+        expect.objectContaining({
+          params: expect.objectContaining({ category: 'bache', municipality: '3' }),
+        }),
+      ),
+    )
   })
 
   it('titula con la ciudad y la provincia', async () => {
@@ -109,21 +152,23 @@ describe('MunicipalityDetailPage, cabecera', () => {
     expect(await screen.findByText('Villa María, Córdoba')).toBeInTheDocument()
   })
 
-  it('resume radio, reportes y usuarios', async () => {
+  it('resume límite, reportes y usuarios', async () => {
     renderWithProviders(<MunicipalityDetailPage />)
 
-    expect(await screen.findByText(`${labels.radius}: 15 km`)).toBeInTheDocument()
+    expect(
+      await screen.findByText(`${labels.boundaryColumn}: 4 puntos`),
+    ).toBeInTheDocument()
     expect(screen.getByText(`${labels.reports}: 2`)).toBeInTheDocument()
     expect(screen.getByText(`${labels.users}: 4`)).toBeInTheDocument()
   })
 
-  it('un municipio sin cobertura definida no muestra la insignia de radio', async () => {
-    stubApi({ municipality: { ...VILLA_MARIA, coverage_radius_km: null } })
+  it('un municipio sin límite trazado no muestra esa insignia', async () => {
+    stubApi({ municipality: { ...VILLA_MARIA, boundary: null } })
 
     renderWithProviders(<MunicipalityDetailPage />)
 
     await screen.findByText('Villa María, Córdoba')
-    expect(screen.queryByText(/^Radio/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Límite/)).not.toBeInTheDocument()
   })
 
   it('ofrece la vuelta al listado', async () => {
