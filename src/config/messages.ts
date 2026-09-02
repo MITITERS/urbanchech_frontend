@@ -154,6 +154,18 @@ export const messages = {
       otro: 'Otro',
     },
   },
+  validatorProfile: {
+    title: 'Validador',
+    decisions: 'Decisiones en tu municipio',
+    empty: 'Todavía no decidió ningún reporte en esta jurisdicción.',
+    outcome: {
+      validado: 'Validó',
+      rechazado: 'Rechazó',
+    },
+    counts: (validated: number, rejected: number) =>
+      `${validated} validados · ${rejected} rechazados`,
+    openReport: 'Ver reporte',
+  },
   profile: {
     title: 'Perfil del vecino',
     memberSince: 'Vecino desde',
@@ -175,6 +187,8 @@ export const messages = {
     noLocation: 'El reporte no tiene coordenadas cargadas.',
     author: 'Vecino',
     likes: 'Apoyos',
+    validatedBy: 'Validó',
+    rejectedBy: 'Rechazó',
     comments: 'Comentarios',
     noComments: 'Todavía no hay comentarios.',
     history: 'Historial de cambios',

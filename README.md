@@ -561,6 +561,55 @@ agente no puede ver datos de otro municipio ni aunque lo pida explícitamente.
 Consecuencia visible acá: **pedir un reporte de otra jurisdicción devuelve 404,
 no 403**, y el panel lo muestra como "no existe".
 
+### La barra de filtros no envuelve
+
+Los seis filtros van **siempre en una sola línea**. Envolviendo, se acomodaban
+distinto según el ancho de la ventana y la barra cambiaba de alto al pasar de
+una fila a dos, empujando la tabla hacia abajo.
+
+Lo primero que cede es **Zona**, que es el único campo elástico (`flex-1` con un
+mínimo); el resto conserva su ancho. Cuando ya no entra ni así, la fila
+**scrollea en horizontal** en lugar de partirse: deja todo alcanzable sin
+esconder ningún control.
+
+Los anchos están ajustados para que entre completa en un portátil de 1280 px.
+Por debajo de eso aparece el scroll.
+
+### Cuántas filas por página lo elige quien mira
+
+El listado del panel es una herramienta de trabajo, y cuántas filas conviene ver
+depende de qué se esté haciendo: revisar el día son pocas, barrer un mes son
+muchas. El selector está junto al resumen del paginado, con 10, 20, 50 y 100.
+
+Va en la query string como el resto de los filtros, así que una vista se
+comparte entera. Cambiarlo vuelve a la primera página, por lo mismo que
+cualquier otro filtro: quedarse en la página 7 de un recorte que ya no la tiene
+es un callejón sin salida.
+
+El backend lo acepta con `?page_size=` (`PanelPagination`) y **lo topea en 100**:
+el parámetro llega del cliente, y sin tope un `?page_size=100000` se traduce en
+traer la tabla entera a memoria y serializarla. Por eso el panel ofrece
+exactamente los valores que el servidor respeta — un valor fuera de esa lista se
+descarta al leer la URL, en vez de pedir algo que va a venir recortado.
+
+### Las fechas no usan `input[type=date]`
+
+El campo nativo **no se puede formatear**: el orden de sus partes lo decide el
+idioma del navegador, no la página ni el `lang` del documento. El mismo panel en
+español abierto en un Chrome en inglés muestra `mm/dd/aaaa`, y en un filtro de
+rango eso no es cosmético — `09/02` y `02/09` son dos meses distintos y nada en
+pantalla dice cuál se está mirando.
+
+`DateField` (`components/common/`) lo reemplaza por un disparador que siempre
+muestra **`dd/mm/aaaa`** y un calendario en un popover, en español. El valor que
+entra y sale sigue siendo el de la API (`aaaa-mm-dd`): lo único que cambia es
+cómo se muestra y cómo se elige.
+
+**Las fechas sin hora no se parsean con `new Date(value)`.** Esa forma lee
+`2026-02-09` como medianoche **UTC**, y en Argentina —tres horas atrás— cae el
+día anterior: un filtro «desde el 9» se mostraba como `08/02/2026`.
+`parseDateOnly()` parte el string y arma la fecha en horario local.
+
 ### Filtros en la query string
 
 Los filtros y la paginación del listado de reportes viven en la URL, no en

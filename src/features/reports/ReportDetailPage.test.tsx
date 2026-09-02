@@ -104,6 +104,40 @@ describe('ReportDetailPage — a dónde vuelve cada rol', () => {
     ).toHaveAttribute('href', '/municipalidades')
   })
 
+  it('dice qué validador lo confirmó en terreno', async () => {
+    // El nombre ya estaba en el historial, mezclado con las acciones del
+    // municipio: acá se lee de una.
+    mockedRole.current = ROLES.MUNICIPAL_AGENT
+    vi.spyOn(apiClient, 'get').mockResolvedValue({
+      data: {
+        ...DETAIL,
+        validation: {
+          validator: { id: 5, name: 'Marcos Vera', avatar: null },
+          decided_at: '2026-08-21T09:00:00Z',
+          outcome: 'validado',
+        },
+      },
+    })
+
+    renderWithProviders(<ReportDetailPage />)
+
+    expect(await screen.findByText('Marcos Vera')).toBeInTheDocument()
+    expect(
+      screen.getByText(new RegExp(messages.reportDetail.validatedBy)),
+    ).toBeVisible()
+  })
+
+  it('sin validar todavía, no inventa un validador', async () => {
+    mockedRole.current = ROLES.MUNICIPAL_AGENT
+
+    renderWithProviders(<ReportDetailPage />)
+    await screen.findByText(/#7/)
+
+    expect(
+      screen.queryByText(new RegExp(messages.reportDetail.validatedBy)),
+    ).not.toBeInTheDocument()
+  })
+
   it('nombra el reporte por su número de municipio', async () => {
     mockedRole.current = ROLES.MUNICIPAL_AGENT
 

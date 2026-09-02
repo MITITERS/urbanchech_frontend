@@ -1,11 +1,12 @@
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Clock, MapPin, ThumbsUp, User } from 'lucide-react'
+import { ArrowLeft, Clock, MapPin, ShieldCheck, ThumbsUp, User } from 'lucide-react'
 import { PersonAvatar } from '@/components/common/PersonAvatar'
 import { QueryState } from '@/components/common/QueryState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { messages } from '@/config/messages'
 import { AuthorLink } from '@/features/users/components/AuthorLink'
+import { ValidatorLink } from '@/features/validators/components/ValidatorLink'
 import { useAuth } from '@/hooks/useAuth'
 import { ROLES } from '@/types/auth'
 import { cn } from '@/lib/utils'
@@ -112,6 +113,23 @@ export function ReportDetailPage() {
                       <MetaItem icon={<ThumbsUp className="size-3.5" />}>
                         {messages.reportDetail.likes}: {report.like_count}
                       </MetaItem>
+                      {/* Quién salió a mirarlo en terreno, y qué decidió. Lo
+                          resuelve el servidor: `reactivar` deja el reporte en
+                          Reportado y `cancelar` lo deja en Cancelado, pero las
+                          ejecuta un agente, así que deducirlo del historial
+                          haría pasar a ese agente por validador. */}
+                      {report.validation?.validator && (
+                        <MetaItem icon={<ShieldCheck className="size-3.5" />}>
+                          {report.validation.outcome === 'rechazado'
+                            ? messages.reportDetail.rejectedBy
+                            : messages.reportDetail.validatedBy}
+                          : <ValidatorLink validator={report.validation.validator} />
+                          <span className="text-muted-foreground">
+                            {' · '}
+                            {formatDateTime(report.validation.decided_at)}
+                          </span>
+                        </MetaItem>
+                      )}
                     </div>
                   </div>
                   <ReportStatusBadge status={report.status} />
