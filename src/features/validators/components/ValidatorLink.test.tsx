@@ -29,6 +29,7 @@ function row(overrides: Partial<PanelReportRow> = {}): PanelReportRow {
     longitude: '-63.2',
     like_count: 0,
     operative_area: null,
+    has_official_response: false,
     municipality: null,
     author: { id: 1, name: 'Vecina', avatar: null },
     validation: {

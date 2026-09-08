@@ -29,6 +29,17 @@ const DETAIL: PanelReportDetail = {
   status_history: [],
   available_transitions: [],
   validation: null,
+  operational_area: null,
+  area_assigned_at: null,
+  area_assignments: [],
+  archived_at: null,
+  official_responses: [],
+  can_publish_official_response: false,
+  resolution_evidences: [],
+  resolution_appeals: [],
+  closed_at: null,
+  objection_deadline: null,
+  appeal_count: 0,
 }
 
 const { mockedRole } = vi.hoisted(() => ({

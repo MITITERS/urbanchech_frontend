@@ -4,6 +4,8 @@ import { CHANGE_PASSWORD_ROUTE, LOGIN_ROUTE } from '@/config/constants'
 import { AgentsPage } from '@/features/platform-admin/AgentsPage'
 import { MunicipalitiesPage } from '@/features/platform-admin/MunicipalitiesPage'
 import { MunicipalityDetailPage } from '@/features/platform-admin/MunicipalityDetailPage'
+import { AreaDetailPage } from '@/features/areas/AreaDetailPage'
+import { AreasPage } from '@/features/areas/AreasPage'
 import { ValidatorsPage } from '@/features/validators/ValidatorsPage'
 import { ChangePasswordPage } from '@/routes/pages/ChangePasswordPage'
 import { ForbiddenPage } from '@/routes/pages/ForbiddenPage'
@@ -50,6 +52,9 @@ export function AppRoutes() {
         <Route element={<AppShell />}>
           <Route path="/reportes/:id" element={<ReportDetailPage />} />
           <Route path="/validadores" element={<ValidatorsPage />} />
+          {/* Las áreas operativas y sus operarios (US-039 y US-044). */}
+          <Route path="/areas" element={<AreasPage />} />
+          <Route path="/areas/:id" element={<AreaDetailPage />} />
         </Route>
       </Route>
 

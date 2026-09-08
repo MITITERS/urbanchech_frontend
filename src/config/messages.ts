@@ -15,6 +15,7 @@ export const messages = {
   nav: {
     reports: 'Reportes',
     validators: 'Validadores',
+    areas: 'Áreas operativas',
     municipalities: 'Municipalidades',
     agents: 'Agentes municipales',
     logout: 'Cerrar sesión',
@@ -109,7 +110,11 @@ export const messages = {
       address: 'Ubicación',
       likes: 'Likes',
       operativeArea: 'Área operativa',
+      officialResponse: 'Respuesta',
     },
+    /** Indicador de la columna de respuesta oficial (US-024, escenario 13). */
+    answered: 'Respondido',
+    unanswered: 'Sin respuesta oficial',
     filters: {
       status: 'Estado',
       category: 'Categoría',
@@ -141,6 +146,9 @@ export const messages = {
       pendiente_validacion: 'Pendiente de Validación',
       reportado: 'Reportado',
       en_proceso: 'En proceso',
+      // Corto a propósito: es una etiqueta de tabla, y el detalle explica de
+      // qué se trata con el plazo restante al lado.
+      resuelto_pendiente_confirmacion: 'Pendiente de confirmación',
       resuelto: 'Resuelto',
       cancelado: 'Cancelado',
       archivado: 'Archivado',
@@ -153,6 +161,100 @@ export const messages = {
       vereda: 'Vereda',
       otro: 'Otro',
     },
+  },
+  areas: {
+    title: 'Áreas operativas',
+    description:
+      'Las dependencias de tu municipalidad que resuelven los reportes. A cada reporte validado se le asigna una, y sus operarios lo ven en la app.',
+    adminDescription:
+      'Las dependencias que resuelven los reportes de cada municipio. Elegí en cuál se da de alta cada área.',
+    create: 'Registrar un área',
+    createTitle: 'Nueva área operativa',
+    editTitle: 'Editar área operativa',
+    name: 'Nombre',
+    namePlaceholder: 'Obras Públicas',
+    contactEmail: 'Email de contacto',
+    contactPhone: 'Teléfono de contacto',
+    contactPhoneHint:
+      'Un solo número por área: el de contacto principal de la dependencia.',
+    municipality: 'Municipalidad',
+    municipalityPlaceholder: 'Elegí una municipalidad',
+    filterByMunicipality: 'Filtrar por municipalidad',
+    allMunicipalities: 'Todas las municipalidades',
+    contact: 'Contacto',
+    state: 'Estado',
+    reports: 'Reportes',
+    operators: 'Operarios',
+    active: 'Activa',
+    inactive: 'Inactiva',
+    edit: 'Editar',
+    manage: 'Ver operarios',
+    created: 'Área operativa registrada.',
+    updated: 'Área operativa actualizada.',
+    empty: 'Todavía no registraste ninguna área operativa.',
+    emptyForMunicipality: 'Esta municipalidad todavía no tiene áreas operativas.',
+    emptyArchived: 'No hay áreas desactivadas.',
+    tabActive: 'Activas',
+    tabArchived: 'Desactivadas',
+    archivedHint:
+      'Las áreas desactivadas dejan de ofrecerse al asignar reportes nuevos, pero conservan los que ya tenían.',
+    deactivate: 'Desactivar',
+    activate: 'Reactivar',
+    deactivateTitle: '¿Desactivar esta área operativa?',
+    deactivateDescription:
+      'Deja de ofrecerse al asignar reportes nuevos. Los que ya tiene asignados conservan el vínculo y el área sigue visible en sus historiales.',
+    deactivateReports: (count: number) =>
+      count === 1
+        ? 'Queda 1 reporte vinculado a esta área.'
+        : `Quedan ${count} reportes vinculados a esta área.`,
+    deactivateConfirm: 'Desactivar área',
+    deactivated: 'El área quedó desactivada.',
+    activated: 'El área vuelve a estar disponible.',
+    backToList: 'Volver a áreas operativas',
+    detailOperators: 'Operarios del área',
+    detailDescription:
+      'El personal de cuadrilla que ve los reportes de esta área desde la app móvil y registra su resolución.',
+    inactiveWarning:
+      'Esta área está desactivada: no recibe reportes nuevos y sus operarios no acceden a la bandeja.',
+  },
+  operators: {
+    create: 'Dar de alta un operario',
+    createTitle: 'Nuevo operario',
+    editTitle: 'Editar operario',
+    name: 'Nombre',
+    email: 'Correo electrónico',
+    phone: 'Teléfono',
+    area: 'Área operativa',
+    areaPlaceholder: 'Elegí un área activa',
+    temporaryPassword: 'Contraseña temporal',
+    temporaryPasswordHint:
+      'El operario la usa una sola vez: la app le exige cambiarla en su primer ingreso.',
+    state: 'Estado',
+    closed: 'Cierres',
+    active: 'Activo',
+    inactive: 'Inactivo',
+    pendingPassword: 'Contraseña temporal pendiente',
+    empty: 'Esta área todavía no tiene operarios.',
+    emptyArchived: 'Esta área no tiene operarios desactivados.',
+    tabActive: 'Habilitados',
+    tabArchived: 'Desactivados',
+    created: 'Operario dado de alta.',
+    updated: 'Operario actualizado.',
+    edit: 'Editar',
+    deactivate: 'Desactivar',
+    activate: 'Reactivar',
+    deactivateTitle: '¿Desactivar a este operario?',
+    deactivateDescription:
+      'Pierde el acceso a la aplicación de inmediato. La cuenta no se elimina: los cierres que ejecutó conservan su identidad en el historial de cada reporte.',
+    deactivateReports: (count: number) =>
+      count === 1
+        ? 'El área tiene 1 reporte En proceso.'
+        : `El área tiene ${count} reportes En proceso.`,
+    deactivateConfirm: 'Desactivar operario',
+    deactivated: 'El operario perdió el acceso a la aplicación.',
+    activated: 'El operario vuelve a estar habilitado.',
+    needsActiveArea:
+      'Registrá primero un área operativa activa para poder dar de alta operarios.',
   },
   validatorProfile: {
     title: 'Validador',
@@ -204,16 +306,68 @@ export const messages = {
     confirmTitle: (action: string) => `¿${action} este reporte?`,
     updated: 'El estado del reporte se actualizó.',
     conflict: 'El reporte cambió de estado mientras lo mirabas. Actualizamos la vista.',
+    area: 'Área responsable',
+    areaEmpty: 'Todavía no se le asignó un área operativa.',
+    areaInactive: 'Esta área fue desactivada, pero sigue a cargo del reporte.',
+    areaReassign: 'Reasignar área',
+    areaReassignTitle: 'Reasignar el área responsable',
+    areaLabel: 'Área operativa',
+    areaPlaceholder: 'Elegí un área activa',
+    areaRequired: 'Elegí el área que se va a hacer cargo.',
+    areaReassigned: 'El reporte cambió de área responsable.',
+    areaHistory: 'Asignaciones de área',
+    areaAssignedInitial: (area: string) => `Asignado a ${area}`,
+    areaAssignedFrom: (from: string, to: string) => `${from} → ${to}`,
+    noAreas:
+      'Tu municipalidad todavía no tiene áreas operativas activas. Registrá una para poder empezar la gestión del reporte.',
+    manageAreas: 'Ir a áreas operativas',
+    officialResponses: 'Respuestas oficiales',
+    officialResponsesEmpty:
+      'El municipio todavía no publicó ninguna comunicación sobre este reporte.',
+    officialResponsePublish: 'Publicar respuesta oficial',
+    officialResponseLabel: 'Respuesta oficial',
+    officialResponsePlaceholder:
+      'Contale a la comunidad qué va a hacer el municipio, en qué plazo, o por qué no va a intervenir.',
+    officialResponseHint:
+      'Una vez publicada no se edita ni se elimina: una corrección se publica como una respuesta nueva.',
+    officialResponseRequired: 'Escribí la respuesta antes de publicarla.',
+    officialResponsePublished: 'La respuesta oficial quedó publicada.',
+    officialResponseNotAllowed:
+      'El municipio no publica respuestas oficiales sobre un reporte en este estado.',
+    resolution: 'Resolución del operario',
+    resolutionEmpty: 'Todavía no se registró la resolución del trabajo.',
+    resolutionBy: (area: string) => `Ejecutado por ${area}`,
+    resolutionOperator: 'Operario',
+    resolutionAttempt: (n: number) => `Cierre ${n}`,
+    appeal: 'Objeción del vecino',
+    appealBy: 'Objetó el cierre',
+    objectionDeadline: (date: string) =>
+      `El vecino puede objetar el cierre hasta el ${date}`,
+    objectionExpired: 'El plazo de objeción venció.',
+    appealed: 'Este cierre fue objetado por el vecino y el reporte volvió a gestión.',
+    /** Rótulo de cada origen de transición en el historial (US-038). */
+    origin: {
+      manual: '',
+      validacion_terreno: 'Validación en terreno',
+      validacion_colectiva: 'Validación colectiva',
+      cierre_operario: 'Cierre del operario',
+      confirmacion_automatica: 'Confirmación automática',
+      apelacion_ciudadano: 'Objeción del vecino',
+      archivado_inactividad: 'Archivado por inactividad',
+    },
+    collectiveConfirmations: (count: number) =>
+      count === 1 ? '1 confirmación' : `${count} confirmaciones`,
   },
   transitions: {
     procesar: {
       label: 'Comenzar gestión',
-      description: 'El reporte pasa a En proceso y el vecino recibe el aviso.',
-    },
-    resolver: {
-      label: 'Confirmar resolución',
       description:
-        'El reporte pasa a Resuelto. Es un estado final: no admite cambios posteriores.',
+        'Elegí el área operativa que se hace cargo: el reporte pasa a En proceso y el vecino recibe el aviso.',
+    },
+    confirmar_resolucion_municipal: {
+      label: 'Confirmar el cierre',
+      description:
+        'Verificaste la resolución del operario: el reporte pasa a Resuelto sin esperar a que venza el plazo de objeción del vecino. Es un estado final.',
     },
     cancelar: {
       label: 'Cancelar',

@@ -15,6 +15,9 @@ import { useReportDetail } from './api/reportDetail'
 import { ReportCategoryLabel } from './components/ReportCategory'
 import { ReportMap } from './components/ReportMap'
 import { ReportStatusBadge } from './components/ReportStatusBadge'
+import { AreaCard } from './components/AreaCard'
+import { OfficialResponses } from './components/OfficialResponses'
+import { ObjectionDeadline, ResolutionThread } from './components/ResolutionThread'
 import { StatusHistory } from './components/StatusHistory'
 import { TransitionActions } from './components/TransitionActions'
 import { REPORT_STATUSES } from './types'
@@ -162,6 +165,34 @@ export function ReportDetailPage() {
                 </CardContent>
               </Card>
 
+              {/* El parte de trabajo del operario va antes que todo lo demás
+                  cuando existe: es lo último que pasó con el reporte y lo que
+                  el agente necesita mirar para decidir si confirma el cierre. */}
+              {report.resolution_evidences.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{messages.reportDetail.resolution}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ObjectionDeadline report={report} />
+                    <ResolutionThread report={report} />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* El hilo institucional va antes que los comentarios y con un
+                  tratamiento propio: es la voz del municipio, no la del
+                  vecindario, y confundirlos es justo lo que el escenario 10 de
+                  US-024 pide evitar. */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>{messages.reportDetail.officialResponses}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <OfficialResponses report={report} />
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>{messages.reportDetail.comments}</CardTitle>
@@ -218,6 +249,15 @@ export function ReportDetailPage() {
                         : messages.reportDetail.finalStatus}
                     </p>
                   )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>{messages.reportDetail.area}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AreaCard report={report} />
                 </CardContent>
               </Card>
 

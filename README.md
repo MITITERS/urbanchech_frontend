@@ -631,6 +631,102 @@ para deshabilitar cuatro, y la lógica de transiciones sigue viviendo en un solo
 lado. Un `409` significa que la vista quedó desactualizada: se avisa y se
 recarga el detalle.
 
+### Procesar y asignar el área son un solo paso (US-028)
+
+El backend declara `requires_area` en la transición, y el panel lo lee: cuando
+viene en `true`, la confirmación abre con el selector de área adentro en lugar
+de mandar al agente a otra pantalla. No son dos pasos en la interfaz porque
+tampoco lo son en el dominio.
+
+El selector consume `?state=active`: un área desactivada no recibe reportes
+nuevos. Cuando la municipalidad no tiene ninguna, la acción se ofrece
+**deshabilitada** y el diálogo explica qué falta, con acceso directo a la
+gestión de áreas — un desplegable vacío no dice nada.
+
+La reasignación vive en la tarjeta del área del detalle y va por su propio
+endpoint, porque no mueve el estado. Se ofrece **solo** en _En proceso_: antes
+no hay nada que distribuir, y en un estado final el área que intervino es
+historia.
+
+### Áreas y operarios: el mismo tablero que validadores (US-039 y US-044)
+
+`src/features/areas/` repite deliberadamente el patrón de US-035 —dos pestañas
+sobre la misma tabla, `?state=` resuelto por el servidor, confirmación explícita
+antes de desactivar—. Quien ya usó la pantalla de validadores no tiene nada
+nuevo que aprender.
+
+Dos diferencias que sí importan:
+
+- **La baja de un área dice cuántos reportes quedan vinculados.** Es la
+  consecuencia que no se ve desde esa pantalla.
+- **Los operarios se gestionan dentro de la ficha de su área** (`/areas/:id`) y
+  no como una sección independiente del menú. Un operario siempre se piensa en
+  el contexto de la dependencia que integra; sacarlo de ahí obligaría a elegir
+  el área en cada alta sin ningún contexto alrededor.
+
+El listado de áreas no pagina: una municipalidad tiene un puñado de
+dependencias, y el desplegable de asignación las necesita todas de una.
+
+### El hilo de respuestas oficiales no ofrece editar ni borrar (US-024)
+
+La inmutabilidad se sostiene en la ausencia de la acción, igual que en el
+backend: el componente no dibuja ningún control sobre una respuesta ya
+publicada. Una corrección se publica como una respuesta nueva, y el texto de
+ayuda del formulario lo dice antes de publicar.
+
+El bloque va **antes** de los comentarios y con tratamiento visual propio
+—filete y fondo de la marca, encabezado con el nombre del municipio—: un
+compromiso institucional no se puede confundir con un comentario de un vecino.
+
+Cuándo se ofrece publicar lo decide `can_publish_official_response`, que viene
+del servidor. El panel no replica la lista de estados habilitados.
+
+El listado marca los reportes **sin** respuesta oficial con un badge, y deja
+discreto el caso contrario: lo que el agente busca de un vistazo son los
+reclamos sin comunicación institucional.
+
+### El agente confirma el cierre, ya no lo declara (US-046 y US-047)
+
+`resolver` desapareció de `TRANSITION_OPERATIONS`. Lo reemplaza
+`confirmar_resolucion_municipal`, que sale del estado nuevo _Resuelto pendiente
+de confirmación_ y llega a `/confirm-resolution/`.
+
+La diferencia no es de nombre: el agente ya no declara resuelto un trabajo que
+no ejecutó. Lo que puede hacer es **confirmar** el cierre del operario sin
+esperar a que venza la ventana de objeción del vecino, cuando lo verificó por su
+cuenta.
+
+El séptimo estado entró en las cuatro tablas que enumeran estados —el badge, el
+color del mapa, el orden de los filtros y el filtro por defecto— y en la última
+a propósito: un cierre pendiente de confirmación **sigue necesitando atención**,
+porque el agente puede confirmarlo antes o ver que fue apelado.
+
+Su color es el verde de _Resuelto_ a media tinta, con el punto del badge
+apagado. Tiene que leerse como "casi resuelto" y no como "resuelto": esa es
+exactamente la distinción que la ventana de objeción existe para sostener.
+
+### El historial dice de dónde salió cada transición (US-038)
+
+`StatusHistoryEntry` ganó `origin` y `confirmation_count`. El origen se rotula
+al lado del nombre de quien la ejecutó, salvo `manual`: decir "manual" junto al
+nombre es ruido.
+
+Lo que arregla es una línea que antes quedaba con solo la fecha. Una transición
+sin responsable individual —la validación colectiva, la confirmación automática,
+el archivado por inactividad— no tenía forma de explicarse; ahora dice qué la
+produjo, y la colectiva agrega con cuántas confirmaciones.
+
+### Los dos cierres y la objeción, en un solo hilo (US-046 y US-048)
+
+`ResolutionThread` muestra **todos** los partes de trabajo y no el último: cuando
+hubo una apelación quedan dos, y la gracia es poder compararlos. La objeción va
+sangrada bajo el cierre que objetó, en rojo — es la contraparte de ese cierre, no
+un evento suelto de la misma jerarquía. Se numeran solo cuando hay más de uno.
+
+En el panel se ve **quién** ejecutó cada cierre. Ante el ciudadano responde el
+área operativa, y esa diferencia la resuelven dos serializers del backend, no un
+flag del cliente.
+
 ### Sistema visual: tokens, capa de tema y marca
 
 Toda la paleta vive en `src/index.css` como variables de shadcn. Los

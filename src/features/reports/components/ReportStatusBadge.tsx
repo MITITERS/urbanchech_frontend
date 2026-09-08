@@ -27,6 +27,14 @@ const STATUS_CLASS: Record<ReportStatus, { badge: string; dot: string }> = {
       'bg-status-in-progress/18 text-status-in-progress ring-status-in-progress/30',
     dot: 'bg-status-in-progress',
   },
+  // Resuelto **pendiente de confirmación**: el mismo verde que el estado final
+  // pero a media tinta y con el punto hueco. Lo importante es que se lea como
+  // "casi resuelto" y no como "resuelto", que es justo la diferencia que la
+  // ventana de objeción de US-047 existe para sostener.
+  [REPORT_STATUSES.PENDING_CONFIRMATION]: {
+    badge: 'bg-status-resolved/8 text-status-resolved/85 ring-status-resolved/20',
+    dot: 'bg-status-resolved/45',
+  },
   [REPORT_STATUSES.RESOLVED]: {
     badge: 'bg-status-resolved/12 text-status-resolved ring-status-resolved/25',
     dot: 'bg-status-resolved',

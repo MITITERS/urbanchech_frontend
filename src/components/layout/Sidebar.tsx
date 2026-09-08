@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Building2, FileText, ShieldCheck, Users } from 'lucide-react'
+import { Building2, FileText, Hammer, ShieldCheck, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BrandMark, BrandWordmark } from '@/components/common/Brand'
 import { messages } from '@/config/messages'
@@ -26,6 +26,9 @@ const NAV_ITEMS: readonly NavItem[] = [
   { to: '/agentes', label: messages.nav.agents, icon: ShieldCheck },
   { to: '/reportes', label: messages.nav.reports, icon: FileText },
   { to: '/validadores', label: messages.nav.validators, icon: Users },
+  // Al final y después de validadores: es la sección de gestión interna del
+  // municipio, la que menos se abre en el día a día del agente.
+  { to: '/areas', label: messages.nav.areas, icon: Hammer },
 ]
 
 export function Sidebar({ role }: { role: Role }) {

@@ -10,6 +10,8 @@ interface TextFieldProps<T extends FieldValues> {
   description?: string
   type?: 'text' | 'email' | 'password'
   autoComplete?: string
+  /** Ejemplo de lo que se espera. No reemplaza a `label`, la acompaña. */
+  placeholder?: string
   /** Se llama cuando el usuario escribe, además de actualizar el formulario. */
   onValueChange?: (value: string) => void
 }
@@ -22,6 +24,7 @@ export function TextField<T extends FieldValues>({
   description,
   type = 'text',
   autoComplete,
+  placeholder,
   onValueChange,
 }: TextFieldProps<T>) {
   return (
@@ -36,6 +39,7 @@ export function TextField<T extends FieldValues>({
             id={field.name}
             type={type}
             autoComplete={autoComplete}
+            placeholder={placeholder}
             aria-invalid={fieldState.invalid}
             onChange={(event) => {
               field.onChange(event)

@@ -3,6 +3,18 @@ import { cn } from '@/lib/utils'
 import { formatDateTime } from '@/lib/format'
 import type { StatusHistoryEntry } from '../types'
 
+/**
+ * Cómo se nombra el origen de una transición, o cadena vacía si no aporta.
+ *
+ * `manual` no se rotula: decir "manual" al lado del nombre de quien la ejecutó
+ * es ruido. Los otros orígenes sí, porque son justamente los que la forma de la
+ * transición no alcanza a distinguir.
+ */
+function originLabel(entry: StatusHistoryEntry): string {
+  if (!entry.origin) return ''
+  return messages.reportDetail.origin[entry.origin]
+}
+
 /** US-013, escenario 7: quién movió el reporte, cuándo, y por qué. */
 export function StatusHistory({ entries }: { entries: StatusHistoryEntry[] }) {
   if (entries.length === 0) {
@@ -56,7 +68,22 @@ export function StatusHistory({ entries }: { entries: StatusHistoryEntry[] }) {
               </p>
               <p className="text-xs text-muted-foreground">
                 {formatDateTime(entry.created_at)}
+                {/*
+                  El origen reemplaza al nombre cuando no hay nombre: una
+                  transición sin responsable individual —la validación
+                  colectiva, la confirmación automática, el archivado por
+                  inactividad— dejaba antes una línea con solo la fecha, que no
+                  decía quién la había producido. Cuando sí hay responsable, el
+                  origen igual aporta: distingue una validación en terreno de
+                  una decisión del panel (US-038).
+                */}
                 {entry.changed_by ? ` · ${entry.changed_by.name}` : ''}
+                {originLabel(entry) ? ` · ${originLabel(entry)}` : ''}
+                {entry.confirmation_count !== null
+                  ? ` · ${messages.reportDetail.collectiveConfirmations(
+                      entry.confirmation_count,
+                    )}`
+                  : ''}
               </p>
               {entry.reason && (
                 <p className="mt-1.5 rounded-md bg-muted/70 px-2.5 py-1.5 text-sm">
