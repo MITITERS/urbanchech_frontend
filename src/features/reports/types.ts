@@ -168,6 +168,18 @@ export interface PanelReportRow {
    * rechazado—.
    */
   validation: ReportValidation | null
+  /**
+   * Solo llega al pedir el listado con `closed_by`, por lo mismo que
+   * `validation`: sin operario por el que preguntar no hay cierre del que
+   * hablar. No lo reemplaza la fecha del reporte —después de una apelación el
+   * cierre vigente puede ser de otro operario del área—.
+   */
+  closure: ReportClosure | null
+}
+
+/** El cierre en terreno del operario por el que se filtró (US-046). */
+export interface ReportClosure {
+  closed_at: string
 }
 
 /** Ordering values accepted by the API. */

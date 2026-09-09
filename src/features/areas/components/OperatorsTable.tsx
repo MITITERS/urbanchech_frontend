@@ -12,6 +12,7 @@ import {
 import { messages } from '@/config/messages'
 import { cn } from '@/lib/utils'
 import { OperatorFormDialog } from './OperatorFormDialog'
+import { OperatorLink } from './OperatorLink'
 import type { OperationalArea, Operator } from '../types'
 
 interface OperatorsTableProps {
@@ -49,7 +50,10 @@ export function OperatorsTable({
             <TableCell className="font-medium">
               <span className="flex items-center gap-2.5">
                 <PersonAvatar name={operator.name} src={operator.avatar} />
-                {operator.name}
+                {/* El nombre abre su perfil, igual que en el hilo de
+                    resolución: la columna «Cierres» dice cuántos, y esto
+                    dice cuáles. */}
+                <OperatorLink operator={operator} />
               </span>
             </TableCell>
             <TableCell className="text-muted-foreground">{operator.email}</TableCell>

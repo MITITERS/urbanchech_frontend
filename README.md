@@ -495,6 +495,32 @@ perfil le atribuiría un rechazo que no hizo. Por eso el listado del panel anota
 la decisión por fila cuando se lo filtra con `?validated_by=`, en lugar de
 dejar que el panel la deduzca del estado.
 
+#### El perfil del operario
+
+Las tres personas que intervienen en un reporte se abren por el mismo camino: su
+nombre. El vecino que lo creó, el validador que lo decidió y el operario que lo
+cerró, cada uno con su diálogo y su listado. Sostener tres componentes casi
+iguales es a propósito: lo que cambia entre ellos es **qué se lista**, y esa es
+justamente la pregunta que cada perfil responde.
+
+Al operario se le muestran los reportes que **cerró**, con `?closed_by=`. El
+listado del panel anota por fila `closure.closed_at`, que es cuándo cerró **esa
+persona** — no vale `Report.closed_at`, porque después de una apelación el
+cierre vigente puede ser de otro operario del área.
+
+El estado de cada fila es el **actual**: un cierre que el vecino objetó volvió a
+_En proceso_ (US-048), y darlo por resuelto en el perfil le taparía al municipio
+el trabajo que rebotó. Por eso el resumen cuenta las tres cosas —confirmados, a
+confirmar y objetados— en lugar de un total que las mezcle.
+
+Se llega desde dos lugares: el hilo de resolución del detalle y el plantel de
+operarios del área. En el plantel, la columna «Cierres» ya decía **cuántos**; el
+nombre ahora dice **cuáles**.
+
+Ante el vecino este perfil no existe: en la app responde el área operativa, con
+el mismo criterio de protección del personal que se aplica al validador
+(US-038). La identidad del operario vive solo acá.
+
 ### El «volver» del detalle depende del rol
 
 Los dos roles llegan al detalle de un reporte desde lugares distintos, así que el

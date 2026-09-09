@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { messages } from '@/config/messages'
 import { renderWithProviders } from '@/test/renderWithProviders'
@@ -84,6 +85,19 @@ describe('ResolutionThread', () => {
     renderWithProviders(<ResolutionThread report={detail()} />)
 
     expect(screen.getByText(new RegExp(OPERATOR.name))).toBeInTheDocument()
+  })
+
+  it('su nombre abre el perfil, como el del vecino y el del validador', async () => {
+    // El agente y el administrador llegan al operario por el mismo camino por
+    // el que llegan a las otras dos personas del reporte: su nombre.
+    const user = userEvent.setup()
+    renderWithProviders(<ResolutionThread report={detail()} />)
+
+    await user.click(screen.getByRole('button', { name: OPERATOR.name }))
+
+    expect(
+      await screen.findByText(messages.operatorProfile.closures),
+    ).toBeInTheDocument()
   })
 
   it('sin cierre registrado lo dice en lugar de dejar el hueco', () => {

@@ -37,6 +37,8 @@ function row(overrides: Partial<PanelReportRow> = {}): PanelReportRow {
       decided_at: '2026-08-21T09:00:00Z',
       outcome: 'validado',
     },
+    // Solo viaja al filtrar por operario; en el perfil del validador va nulo.
+    closure: null,
     ...overrides,
   }
 }

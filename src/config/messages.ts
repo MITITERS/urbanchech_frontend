@@ -268,6 +268,17 @@ export const messages = {
       `${validated} validados · ${rejected} rechazados`,
     openReport: 'Ver reporte',
   },
+  operatorProfile: {
+    title: 'Operario',
+    closures: 'Cierres en tu municipio',
+    empty: 'Todavía no cerró ningún reporte en esta jurisdicción.',
+    closedOn: (date: string) => `Cerrado el ${date}`,
+    // Un cierre objetado volvió a gestión (US-048): no está confirmado ni
+    // esperando, así que se cuenta aparte en vez de desaparecer del resumen.
+    counts: (confirmed: number, awaiting: number, appealed: number) =>
+      `${confirmed} confirmados · ${awaiting} a confirmar · ${appealed} objetados`,
+    openReport: 'Ver reporte',
+  },
   profile: {
     title: 'Perfil del vecino',
     memberSince: 'Vecino desde',

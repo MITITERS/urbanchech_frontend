@@ -1,5 +1,6 @@
 import { Camera, ShieldAlert, Wrench } from 'lucide-react'
 import { messages } from '@/config/messages'
+import { OperatorLink } from '@/features/areas/components/OperatorLink'
 import { formatDateTime } from '@/lib/format'
 import type { PanelReportDetail, ResolutionAppeal, ResolutionEvidence } from '../types'
 
@@ -69,9 +70,15 @@ function EvidenceCard({
           {evidence.operational_area
             ? ` · ${messages.reportDetail.resolutionBy(evidence.operational_area.name)}`
             : ''}
-          {/* Solo en el panel: ante el vecino responde el área (US-038). */}
-          {evidence.operator ? ` · ${evidence.operator.name}` : ''}
         </p>
+        {/* Solo en el panel: ante el vecino responde el área (US-038). El
+            nombre abre su perfil, igual que el del vecino y el del validador
+            en esta misma pantalla. */}
+        {evidence.operator && (
+          <p className="text-xs text-muted-foreground">
+            <OperatorLink operator={evidence.operator} />
+          </p>
+        )}
       </div>
       {evidence.photo && (
         <img src={evidence.photo} alt="" className="max-h-64 w-full object-cover" />

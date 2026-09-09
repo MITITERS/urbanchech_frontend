@@ -52,6 +52,7 @@ const REPORT: PanelReportRow = {
   municipality: VILLA_MARIA,
   author: { id: 1, name: 'Vecina', avatar: null },
   validation: null,
+  closure: null,
 }
 
 const MARKER: MunicipalityReportMarker = {
