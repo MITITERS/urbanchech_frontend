@@ -128,6 +128,20 @@ export interface ResolutionAppeal {
   evidence: ResolutionEvidence | null
 }
 
+/**
+ * La validación por confirmaciones de los vecinos (US-040).
+ *
+ * Va aparte de `ReportValidation` y no como una variante suya: aquella responde
+ * «quién salió a mirarlo» y acá **no hay persona** de la que hablar. Los dos
+ * caminos llegan a *Reportado* desde *Pendiente de validación*, así que el
+ * panel necesita dos campos para poder decir cuál fue.
+ */
+export interface CollectiveValidation {
+  validated_at: string
+  /** Cuántos vecinos confirmaron. Quiénes no se expone (US-038). */
+  confirmation_count: number | null
+}
+
 /** Un asiento del registro de asignaciones de área (US-028). */
 export interface AreaAssignment {
   /** Nulo en la asignación inicial, la única sin área anterior. */
@@ -310,4 +324,10 @@ export interface PanelReportDetail {
    * validador.
    */
   validation: ReportValidation | null
+  /**
+   * El otro camino a *Reportado*: las confirmaciones de los vecinos (US-040).
+   * Es nulo cuando validó un validador, y `validation` es nulo cuando validó la
+   * comunidad — nunca vienen los dos.
+   */
+  collective_validation: CollectiveValidation | null
 }

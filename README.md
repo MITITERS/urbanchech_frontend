@@ -495,6 +495,24 @@ perfil le atribuiría un rechazo que no hizo. Por eso el listado del panel anota
 la decisión por fila cuando se lo filtra con `?validated_by=`, en lugar de
 dejar que el panel la deduzca del estado.
 
+#### Validado por la comunidad
+
+Un reporte llega a _Reportado_ por dos caminos, y el encabezado del detalle
+tiene que decir cuál fue. `validation` responde «quién salió a mirarlo» y viene
+en nulo cuando validó la comunidad —eso ya estaba bien—, pero no había nada que
+ocupara su lugar: el encabezado no mostraba **nada**, y un reporte validado
+colectivamente se leía como uno que nadie validó.
+
+`collective_validation` lo llena, con la fecha y cuántas confirmaciones hubo.
+**Quiénes confirmaron no se expone** (US-038): valida la cantidad, no una
+persona, y por eso la línea no lleva nombre ni enlace a un perfil como la del
+validador.
+
+Lo resuelve el servidor, igual que `validation`: el panel no deduce cuál de los
+dos caminos fue mirando la forma de la transición. El dato ya estaba en el
+historial —con su origen y su contador—, pero enterrado entre los movimientos
+del municipio.
+
 #### El perfil del operario
 
 Las tres personas que intervienen en un reporte se abren por el mismo camino: su

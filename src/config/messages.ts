@@ -302,6 +302,9 @@ export const messages = {
     likes: 'Apoyos',
     validatedBy: 'Validó',
     rejectedBy: 'Rechazó',
+    // Sin persona: valida la cantidad, no alguien. Por eso no dice «Validó»
+    // seguido de un nombre, como el de terreno.
+    validatedByCommunity: 'Validado por la comunidad',
     comments: 'Comentarios',
     noComments: 'Todavía no hay comentarios.',
     history: 'Historial de cambios',

@@ -29,6 +29,7 @@ function detail(overrides: Partial<PanelReportDetail> = {}): PanelReportDetail {
     status_history: [],
     available_transitions: [],
     validation: null,
+    collective_validation: null,
     operational_area: null,
     area_assigned_at: null,
     area_assignments: [],

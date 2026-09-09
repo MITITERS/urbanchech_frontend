@@ -1,5 +1,13 @@
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, Clock, MapPin, ShieldCheck, ThumbsUp, User } from 'lucide-react'
+import {
+  ArrowLeft,
+  Clock,
+  MapPin,
+  ShieldCheck,
+  ThumbsUp,
+  User,
+  Users,
+} from 'lucide-react'
 import { PersonAvatar } from '@/components/common/PersonAvatar'
 import { QueryState } from '@/components/common/QueryState'
 import { Button } from '@/components/ui/button'
@@ -130,6 +138,25 @@ export function ReportDetailPage() {
                           <span className="text-muted-foreground">
                             {' · '}
                             {formatDateTime(report.validation.decided_at)}
+                          </span>
+                        </MetaItem>
+                      )}
+                      {/* El otro camino a Reportado (US-040). Sin esto el
+                          encabezado no mostraba nada y un reporte validado por
+                          la comunidad se leía como uno que nadie validó. No
+                          lleva nombre porque no hubo persona: lo certificó la
+                          cantidad, y quiénes confirmaron no se expone (US-038). */}
+                      {report.collective_validation && (
+                        <MetaItem icon={<Users className="size-3.5" />}>
+                          {messages.reportDetail.validatedByCommunity}
+                          {report.collective_validation.confirmation_count !== null
+                            ? ` · ${messages.reportDetail.collectiveConfirmations(
+                                report.collective_validation.confirmation_count,
+                              )}`
+                            : ''}
+                          <span className="text-muted-foreground">
+                            {' · '}
+                            {formatDateTime(report.collective_validation.validated_at)}
                           </span>
                         </MetaItem>
                       )}

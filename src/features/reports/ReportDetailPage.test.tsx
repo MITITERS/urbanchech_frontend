@@ -29,6 +29,7 @@ const DETAIL: PanelReportDetail = {
   status_history: [],
   available_transitions: [],
   validation: null,
+  collective_validation: null,
   operational_area: null,
   area_assigned_at: null,
   area_assignments: [],
@@ -144,6 +145,34 @@ describe('ReportDetailPage — a dónde vuelve cada rol', () => {
     renderWithProviders(<ReportDetailPage />)
     await screen.findByText(/#7/)
 
+    expect(
+      screen.queryByText(new RegExp(messages.reportDetail.validatedBy)),
+    ).not.toBeInTheDocument()
+  })
+
+  it('dice que lo validó la comunidad, sin inventar un validador', async () => {
+    // US-040: el otro camino a Reportado. Antes el encabezado no mostraba nada
+    // y un reporte validado por la comunidad se leía como uno sin validar.
+    mockedRole.current = ROLES.MUNICIPAL_AGENT
+    vi.spyOn(apiClient, 'get').mockResolvedValue({
+      data: {
+        ...DETAIL,
+        collective_validation: {
+          validated_at: '2026-09-08T09:00:00Z',
+          confirmation_count: 3,
+        },
+      },
+    })
+
+    renderWithProviders(<ReportDetailPage />)
+
+    expect(
+      await screen.findByText(new RegExp(messages.reportDetail.validatedByCommunity)),
+    ).toBeVisible()
+    // Cuántos confirmaron sí; quiénes, no (US-038).
+    expect(
+      screen.getByText(new RegExp(messages.reportDetail.collectiveConfirmations(3))),
+    ).toBeVisible()
     expect(
       screen.queryByText(new RegExp(messages.reportDetail.validatedBy)),
     ).not.toBeInTheDocument()
