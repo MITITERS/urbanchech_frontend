@@ -101,6 +101,37 @@ describe('ResolutionThread', () => {
     ).toBeInTheDocument()
   })
 
+  it('las dos fotos arrancan en la misma columna', () => {
+    // El cierre y la objeción son dos versiones del mismo lugar: la gracia es
+    // poder compararlas, y con una corrida respecto de la otra no se puede.
+    // Antes la objeción iba sangrada y la imagen pegada al borde, dos píxeles
+    // corrida por el filete lateral.
+    renderWithProviders(
+      <ResolutionThread report={detail({ resolution_appeals: [appeal()] })} />,
+    )
+
+    // Las fotos son decorativas (`alt=""`), así que no tienen rol accesible:
+    // se buscan por etiqueta.
+    const [closure, objection] = Array.from(document.querySelectorAll('img'))
+    const container = (node: Element) => node.parentElement as HTMLElement
+
+    // Misma envoltura con el mismo padding, y ninguna tarjeta sangrada.
+    expect(container(closure).className).toBe(container(objection).className)
+    expect(closure.closest('article')?.className).not.toMatch(/\bml-/)
+    expect(objection.closest('article')?.className).not.toMatch(/\bml-/)
+  })
+
+  it('ninguna tarjeta lleva filete de un solo lado', () => {
+    // El borde izquierdo rompía la esquina redondeada y corría el contenido.
+    renderWithProviders(
+      <ResolutionThread report={detail({ resolution_appeals: [appeal()] })} />,
+    )
+
+    for (const card of screen.getAllByRole('article')) {
+      expect(card.className).not.toMatch(/border-l/)
+    }
+  })
+
   it('sin cierre registrado lo dice en lugar de dejar el hueco', () => {
     renderWithProviders(
       <ResolutionThread report={detail({ resolution_evidences: [] })} />,

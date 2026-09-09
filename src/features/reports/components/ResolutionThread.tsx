@@ -1,7 +1,9 @@
 import { Camera, ShieldAlert, Wrench } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { messages } from '@/config/messages'
 import { OperatorLink } from '@/features/areas/components/OperatorLink'
 import { formatDateTime } from '@/lib/format'
+import { cn } from '@/lib/utils'
 import type { PanelReportDetail, ResolutionAppeal, ResolutionEvidence } from '../types'
 
 /**
@@ -46,6 +48,75 @@ export function ResolutionThread({ report }: { report: PanelReportDetail }) {
   )
 }
 
+/**
+ * El molde de las dos tarjetas del hilo.
+ *
+ * Son el mismo objeto con distinto tono: un evento con encabezado, texto, una
+ * línea de datos y una foto. Estaban duplicadas y ya habían empezado a
+ * divergir —la del cierre mostraba al operario y la de la objeción no—, así
+ * que el molde es uno y lo que cambia viaja como props.
+ *
+ * **La foto va con el mismo margen que el texto**, no pegada a los bordes: con
+ * la imagen a sangre, su borde izquierdo caía dos píxeles corrido respecto del
+ * de la tarjeta —lo que sobresalía era el filete lateral— y las fotos de dos
+ * eventos seguidos no arrancaban en la misma columna.
+ */
+function ThreadCard({
+  tone,
+  icon,
+  title,
+  body,
+  meta,
+  photo,
+}: {
+  tone: 'resolved' | 'rejected'
+  icon: ReactNode
+  title: string
+  body: string
+  meta: ReactNode
+  photo: string | null
+}) {
+  return (
+    <article
+      className={cn(
+        // Un aro completo en lugar del filete izquierdo: el color ya lo dan el
+        // ícono y el título, y el borde de un solo lado rompía la esquina
+        // redondeada y desalineaba lo de adentro.
+        'overflow-hidden rounded-xl ring-1 ring-inset',
+        tone === 'resolved'
+          ? 'bg-status-resolved/5 ring-status-resolved/20'
+          : 'bg-status-rejected/5 ring-status-rejected/20',
+      )}
+    >
+      <div className="space-y-1.5 p-3.5">
+        <p
+          className={cn(
+            'flex flex-wrap items-center gap-1.5 text-xs font-semibold tracking-wide uppercase',
+            tone === 'resolved' ? 'text-status-resolved' : 'text-status-rejected',
+          )}
+        >
+          {icon}
+          {title}
+        </p>
+        <p className="text-sm leading-relaxed whitespace-pre-line">{body}</p>
+        <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+          {meta}
+        </p>
+      </div>
+      {photo && (
+        <div className="px-3.5 pb-3.5">
+          <img
+            src={photo}
+            alt=""
+            // Mismo tratamiento que la foto del reporte, arriba en esta pantalla.
+            className="max-h-64 w-full rounded-lg object-cover ring-1 ring-border"
+          />
+        </div>
+      )}
+    </article>
+  )
+}
+
 function EvidenceCard({
   evidence,
   attempt,
@@ -54,59 +125,60 @@ function EvidenceCard({
   attempt: number | null
 }) {
   return (
-    <div className="overflow-hidden rounded-lg border-l-2 border-status-resolved bg-status-resolved/5">
-      <div className="space-y-1.5 p-3">
-        <p className="flex flex-wrap items-center gap-1.5 text-xs font-semibold tracking-wide text-status-resolved uppercase">
-          <Wrench className="size-3.5" aria-hidden />
-          {attempt === null
-            ? messages.reportDetail.resolution
-            : messages.reportDetail.resolutionAttempt(attempt)}
-        </p>
-        <p className="text-sm leading-relaxed whitespace-pre-line">
-          {evidence.description}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {formatDateTime(evidence.created_at)}
-          {evidence.operational_area
-            ? ` · ${messages.reportDetail.resolutionBy(evidence.operational_area.name)}`
-            : ''}
-        </p>
-        {/* Solo en el panel: ante el vecino responde el área (US-038). El
-            nombre abre su perfil, igual que el del vecino y el del validador
-            en esta misma pantalla. */}
-        {evidence.operator && (
-          <p className="text-xs text-muted-foreground">
-            <OperatorLink operator={evidence.operator} />
-          </p>
-        )}
-      </div>
-      {evidence.photo && (
-        <img src={evidence.photo} alt="" className="max-h-64 w-full object-cover" />
-      )}
-    </div>
+    <ThreadCard
+      tone="resolved"
+      icon={<Wrench className="size-3.5" aria-hidden />}
+      title={
+        attempt === null
+          ? messages.reportDetail.resolution
+          : messages.reportDetail.resolutionAttempt(attempt)
+      }
+      body={evidence.description}
+      meta={
+        <>
+          <span>{formatDateTime(evidence.created_at)}</span>
+          {evidence.operational_area && (
+            <span>
+              {'\u00b7 '}
+              {messages.reportDetail.resolutionBy(evidence.operational_area.name)}
+            </span>
+          )}
+          {/* Solo en el panel: ante el vecino responde el área (US-038). El
+              nombre abre su perfil, igual que el del vecino y el del validador
+              en esta misma pantalla. Va en la misma línea que la fecha en vez
+              de en un renglón aparte, que lo hacía parecer otro dato. */}
+          {evidence.operator && (
+            <span>
+              {'\u00b7 '}
+              <OperatorLink operator={evidence.operator} />
+            </span>
+          )}
+        </>
+      }
+      photo={evidence.photo}
+    />
   )
 }
 
 function AppealCard({ appeal }: { appeal: ResolutionAppeal }) {
   return (
-    // Sangrada bajo el cierre que objeta, y en rojo: es la contraparte de ese
-    // cierre, no un evento suelto de la misma jerarquía.
-    <div className="ml-4 overflow-hidden rounded-lg border-l-2 border-status-rejected bg-status-rejected/5">
-      <div className="space-y-1.5 p-3">
-        <p className="flex flex-wrap items-center gap-1.5 text-xs font-semibold tracking-wide text-status-rejected uppercase">
-          <ShieldAlert className="size-3.5" aria-hidden />
-          {messages.reportDetail.appeal}
-        </p>
-        <p className="text-sm leading-relaxed whitespace-pre-line">{appeal.reason}</p>
-        <p className="text-xs text-muted-foreground">
-          {formatDateTime(appeal.created_at)}
-          {appeal.author ? ` · ${appeal.author.name}` : ''}
-        </p>
-      </div>
-      {appeal.photo && (
-        <img src={appeal.photo} alt="" className="max-h-64 w-full object-cover" />
-      )}
-    </div>
+    // Alineada con el cierre que objeta, no sangrada: son dos versiones del
+    // mismo lugar y la gracia es poder comparar las fotos, cosa que con una
+    // corrida respecto de la otra no se puede. Que responde a ese cierre lo
+    // dicen el color, el ícono y el orden.
+    <ThreadCard
+      tone="rejected"
+      icon={<ShieldAlert className="size-3.5" aria-hidden />}
+      title={messages.reportDetail.appeal}
+      body={appeal.reason}
+      meta={
+        <>
+          <span>{formatDateTime(appeal.created_at)}</span>
+          {appeal.author && <span>{`\u00b7 ${appeal.author.name}`}</span>}
+        </>
+      }
+      photo={appeal.photo}
+    />
   )
 }
 
