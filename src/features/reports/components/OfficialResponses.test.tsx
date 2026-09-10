@@ -105,6 +105,18 @@ describe('OfficialResponses', () => {
     expect(screen.getByText(VILLA_MARIA.city)).toBeInTheDocument()
   })
 
+  it('la respuesta no lleva filete de un solo lado', () => {
+    // El borde izquierdo rompía la esquina redondeada por la que pasaba y
+    // corría el contenido respecto del margen opuesto. Mismo criterio que las
+    // tarjetas del hilo de resolución.
+    renderWithProviders(
+      <OfficialResponses report={detail({ official_responses: [FIRST] })} />,
+    )
+
+    const card = screen.getByText(FIRST.text).closest('li')
+    expect(card?.className).not.toMatch(/border-l/)
+  })
+
   it('no ofrece editar ni eliminar una respuesta publicada', () => {
     // Escenario 3: la inmutabilidad se sostiene en la ausencia de la acción.
     renderWithProviders(

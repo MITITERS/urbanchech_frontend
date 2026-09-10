@@ -54,10 +54,16 @@ export function OfficialResponses({ report }: { report: PanelReportDetail }) {
           {report.official_responses.map((response) => (
             /* Tratamiento visual propio: un compromiso institucional no se
                puede confundir con un comentario de un vecino ni con el parte
-               de trabajo del operario (escenario 10). */
+               de trabajo del operario (escenario 10).
+
+               Un aro completo y no el filete izquierdo que tenía, igual que las
+               tarjetas del hilo de resolución: el borde de un solo lado rompe
+               la esquina redondeada por la que pasa y corre el contenido
+               respecto del margen opuesto. Lo institucional ya lo dicen el
+               ícono, el color y el nombre del municipio. */
             <li
               key={response.id}
-              className="rounded-lg border-l-2 border-primary bg-primary/5 p-3"
+              className="rounded-xl bg-primary/5 p-3.5 ring-1 ring-primary/20 ring-inset"
             >
               <p className="flex flex-wrap items-center gap-1.5 text-xs font-semibold tracking-wide text-primary uppercase">
                 <Landmark className="size-3.5" aria-hidden />
