@@ -29,6 +29,7 @@ function row(overrides: Partial<PanelReportRow> = {}): PanelReportRow {
     longitude: '-63.2',
     like_count: 0,
     operative_area: null,
+    has_official_response: false,
     municipality: null,
     author: { id: 1, name: 'Vecina', avatar: null },
     validation: {
@@ -36,6 +37,8 @@ function row(overrides: Partial<PanelReportRow> = {}): PanelReportRow {
       decided_at: '2026-08-21T09:00:00Z',
       outcome: 'validado',
     },
+    // Solo viaja al filtrar por operario; en el perfil del validador va nulo.
+    closure: null,
     ...overrides,
   }
 }

@@ -113,6 +113,7 @@ describe('tabla de acceso', () => {
       messages.nav.municipalities,
       messages.nav.agents,
       messages.nav.validators,
+      messages.nav.areas,
     ])
   })
 
@@ -133,6 +134,10 @@ describe('tabla de acceso', () => {
 
     const labels = screen.getAllByRole('link').map((link) => link.textContent?.trim())
 
-    expect(labels).toEqual([messages.nav.reports, messages.nav.validators])
+    expect(labels).toEqual([
+      messages.nav.reports,
+      messages.nav.validators,
+      messages.nav.areas,
+    ])
   })
 })

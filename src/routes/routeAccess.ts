@@ -32,6 +32,10 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
   // una municipalidad, y es donde viven las acciones de estado.
   { prefix: '/reportes', roles: PANEL_ROLES },
   { prefix: '/validadores', roles: PANEL_ROLES },
+  // Las áreas operativas las gestiona el agente en su jurisdicción; el admin,
+  // que no está acotado a ninguna, las ve todas y elige municipalidad al dar
+  // de alta. Mismo alcance que los validadores, por lo mismo.
+  { prefix: '/areas', roles: PANEL_ROLES },
   { prefix: '/municipalidades', roles: ADMIN_ONLY },
   { prefix: '/agentes', roles: ADMIN_ONLY },
 ]

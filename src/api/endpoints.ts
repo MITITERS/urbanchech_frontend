@@ -51,12 +51,33 @@ export const endpoints = {
     activate: (id: number) => `${API}/validators/${id}/activate/`,
     deactivate: (id: number) => `${API}/validators/${id}/deactivate/`,
   },
+  /** Áreas operativas del municipio (US-039). */
+  operationalAreas: {
+    list: `${API}/operational-areas/`,
+    detail: (id: number) => `${API}/operational-areas/${id}/`,
+    activate: (id: number) => `${API}/operational-areas/${id}/activate/`,
+    deactivate: (id: number) => `${API}/operational-areas/${id}/deactivate/`,
+  },
+  /** Operarios de un área operativa (US-044). */
+  operators: {
+    list: `${API}/operators/`,
+    detail: (id: number) => `${API}/operators/${id}/`,
+    activate: (id: number) => `${API}/operators/${id}/activate/`,
+    deactivate: (id: number) => `${API}/operators/${id}/deactivate/`,
+  },
   panelReports: {
     list: `${API}/panel/reports/`,
     detail: (id: number) => `${API}/panel/reports/${id}/`,
     /** Un endpoint por transición: los permisos y los campos difieren. */
     transition: (id: number, operation: string) =>
       `${API}/panel/reports/${id}/${operation}/`,
+    /**
+     * Reasignación de área (US-028). Va aparte de las transiciones porque no
+     * mueve el estado: el reporte permanece En proceso.
+     */
+    assignArea: (id: number) => `${API}/panel/reports/${id}/assign-area/`,
+    /** Publicación de una respuesta oficial (US-024). Solo alta. */
+    officialResponses: (id: number) => `${API}/panel/reports/${id}/official-responses/`,
   },
   reports: {
     list: `${API}/reports/`,

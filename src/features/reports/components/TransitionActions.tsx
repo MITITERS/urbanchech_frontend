@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { messages } from '@/config/messages'
+import { useActiveAreas } from '@/features/areas/api/areas'
 import { useReportTransition } from '../api/reportDetail'
+import { AreaSelectField } from './AreaSelectField'
 import type { AvailableTransition, TransitionOperation } from '../types'
 
 const CONFLICT_STATUS = 409
@@ -28,6 +30,13 @@ export function TransitionActions({
   const [pending, setPending] = useState<AvailableTransition | null>(null)
   const [reason, setReason] = useState('')
   const [reasonError, setReasonError] = useState<string | null>(null)
+  const [areaId, setAreaId] = useState('')
+  const [areaError, setAreaError] = useState<string | null>(null)
+  // Las áreas se piden solo cuando hay una acción que las necesita: la
+  // mayoría de las transiciones no tocan el área, y el detalle se abre muchas
+  // más veces de las que se ejecuta una.
+  const needsArea = transitions.some((item) => item.requires_area)
+  const areas = useActiveAreas({ enabled: needsArea })
 
   if (transitions.length === 0) return null
 
@@ -35,6 +44,8 @@ export function TransitionActions({
     setPending(null)
     setReason('')
     setReasonError(null)
+    setAreaId('')
+    setAreaError(null)
   }
 
   const confirm = async () => {
@@ -43,10 +54,15 @@ export function TransitionActions({
       setReasonError('Indicá el motivo para poder continuar.')
       return
     }
+    if (pending.requires_area && areaId === '') {
+      setAreaError(messages.reportDetail.areaRequired)
+      return
+    }
     try {
       await transition.mutateAsync({
         operation: pending.operation,
         reason: pending.requires_reason ? reason.trim() : undefined,
+        areaId: pending.requires_area ? Number(areaId) : undefined,
       })
       toast.success(messages.reportDetail.updated)
       close()
@@ -76,6 +92,15 @@ export function TransitionActions({
             key={item.operation}
             size="lg"
             variant={DESTRUCTIVE.includes(item.operation) ? 'outline' : 'default'}
+            // Escenario 4 de US-028: sin áreas registradas la acción se ofrece
+            // deshabilitada, y el título dice qué falta para quien no llega al
+            // hover ni abre el diálogo.
+            disabled={item.requires_area && areas.data?.length === 0}
+            title={
+              item.requires_area && areas.data?.length === 0
+                ? messages.reportDetail.noAreas
+                : undefined
+            }
             onClick={() => setPending(item)}
           >
             {messages.transitions[item.operation].label}
@@ -101,6 +126,19 @@ export function TransitionActions({
         isPending={transition.isPending}
         onConfirm={() => void confirm()}
       >
+        {/* Procesar abre un diálogo con el selector de área: no son dos pasos
+            separados en la interfaz, porque tampoco lo son en el dominio. */}
+        {pending?.requires_area && (
+          <AreaSelectField
+            areas={areas.data ?? []}
+            value={areaId}
+            onChange={(value) => {
+              setAreaId(value)
+              setAreaError(null)
+            }}
+            error={areaError}
+          />
+        )}
         {pending?.requires_reason && (
           <Field data-invalid={reasonError !== null}>
             <FieldLabel htmlFor="transition-reason">

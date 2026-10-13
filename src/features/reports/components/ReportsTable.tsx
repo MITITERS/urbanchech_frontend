@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MapPin, ThumbsUp } from 'lucide-react'
+import { MapPin, MessageSquareDot, ThumbsUp } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
 import { messages } from '@/config/messages'
 import { formatDateTime } from '@/lib/format'
 import type { PanelReportRow } from '../types'
@@ -28,6 +29,7 @@ export function ReportsTable({ reports }: { reports: PanelReportRow[] }) {
           <TableHead>{columns.address}</TableHead>
           <TableHead className="w-20 text-right">{columns.likes}</TableHead>
           <TableHead>{columns.operativeArea}</TableHead>
+          <TableHead className="w-40">{columns.officialResponse}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -71,7 +73,20 @@ export function ReportsTable({ reports }: { reports: PanelReportRow[] }) {
               </span>
             </TableCell>
             <TableCell className="text-muted-foreground">
-              {report.operative_area ?? '—'}
+              {report.operative_area?.name ?? '—'}
+            </TableCell>
+            <TableCell>
+              {/* Escenario 13 de US-024: lo que se busca de un vistazo son los
+                  reclamos **sin** comunicación institucional, así que ese es el
+                  estado que se marca y el otro queda discreto. */}
+              {report.has_official_response ? (
+                <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <MessageSquareDot className="size-3.5" aria-hidden />
+                  {messages.reports.answered}
+                </span>
+              ) : (
+                <Badge variant="secondary">{messages.reports.unanswered}</Badge>
+              )}
             </TableCell>
           </TableRow>
         ))}

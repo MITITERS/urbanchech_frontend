@@ -15,6 +15,10 @@ const STATUS_COLOR: Record<ReportStatus, string> = {
   [REPORT_STATUSES.PENDING_VALIDATION]: 'var(--status-pending)',
   [REPORT_STATUSES.REPORTED]: 'var(--status-in-progress)',
   [REPORT_STATUSES.IN_PROGRESS]: 'var(--status-in-progress)',
+  // El verde a media intensidad dice lo que es: resuelto, pero todavía no
+  // confirmado. El pleno queda para el estado final.
+  [REPORT_STATUSES.PENDING_CONFIRMATION]:
+    'color-mix(in oklab, var(--status-resolved) 55%, var(--muted-foreground))',
   [REPORT_STATUSES.RESOLVED]: 'var(--status-resolved)',
   [REPORT_STATUSES.CANCELLED]: 'var(--status-rejected)',
   [REPORT_STATUSES.ARCHIVED]: 'var(--muted-foreground)',

@@ -21,6 +21,8 @@ const HISTORY: StatusHistoryEntry[] = [
     status: REPORT_STATUSES.PENDING_VALIDATION,
     changed_by: null,
     reason: '',
+    origin: '',
+    confirmation_count: null,
     created_at: '2026-08-20T12:00:00Z',
   },
   {
@@ -28,6 +30,8 @@ const HISTORY: StatusHistoryEntry[] = [
     status: REPORT_STATUSES.IN_PROGRESS,
     changed_by: AGENT,
     reason: '',
+    origin: 'manual',
+    confirmation_count: null,
     created_at: '2026-08-21T09:30:00Z',
   },
   {
@@ -35,6 +39,8 @@ const HISTORY: StatusHistoryEntry[] = [
     status: REPORT_STATUSES.CANCELLED,
     changed_by: AGENT,
     reason: 'El bache ya lo reparó la empresa de gas.',
+    origin: 'manual',
+    confirmation_count: null,
     created_at: '2026-08-22T15:45:00Z',
   },
 ]
@@ -83,5 +89,55 @@ describe('StatusHistory', () => {
     render(<StatusHistory entries={HISTORY} />)
 
     expect(screen.getAllByRole('listitem')).toHaveLength(3)
+  })
+})
+
+describe('origen de la transición (US-038)', () => {
+  it('nombra la validación colectiva, que no tiene responsable individual', () => {
+    // Sin el origen, la entrada quedaba con solo la fecha: nada decía que la
+    // había producido la comunidad y no un validador.
+    render(
+      <StatusHistory
+        entries={[
+          {
+            previous_status: REPORT_STATUSES.PENDING_VALIDATION,
+            status: REPORT_STATUSES.REPORTED,
+            changed_by: null,
+            reason: '',
+            origin: 'validacion_colectiva',
+            confirmation_count: 10,
+            created_at: '2026-08-23T10:00:00Z',
+          },
+        ]}
+      />,
+    )
+
+    expect(
+      screen.getByText(new RegExp(labels.origin.validacion_colectiva)),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(new RegExp(labels.collectiveConfirmations(10))),
+    ).toBeInTheDocument()
+  })
+
+  it('no rotula las transiciones manuales: el nombre ya lo dice', () => {
+    render(
+      <StatusHistory
+        entries={[
+          {
+            previous_status: REPORT_STATUSES.REPORTED,
+            status: REPORT_STATUSES.IN_PROGRESS,
+            changed_by: AGENT,
+            reason: '',
+            origin: 'manual',
+            confirmation_count: null,
+            created_at: '2026-08-23T10:00:00Z',
+          },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText(new RegExp(AGENT.name))).toBeInTheDocument()
+    expect(screen.queryByText(/manual/i)).not.toBeInTheDocument()
   })
 })
