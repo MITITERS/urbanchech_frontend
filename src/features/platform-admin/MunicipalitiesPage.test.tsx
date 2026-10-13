@@ -61,9 +61,9 @@ describe('MunicipalitiesPage, baja en cascada', () => {
   })
 
   it('al confirmar, dice cuántas cuentas quedaron archivadas', async () => {
-    const del = vi
-      .spyOn(apiClient, 'delete')
-      .mockResolvedValue({ data: { deactivated_users: 2 } } as never)
+    const del = vi.spyOn(apiClient, 'delete').mockResolvedValue({
+      data: { deactivated_users: 2, deactivated_areas: 0 },
+    } as never)
     const user = userEvent.setup()
 
     renderWithProviders(<MunicipalitiesPage />)
@@ -72,5 +72,48 @@ describe('MunicipalitiesPage, baja en cascada', () => {
 
     await waitFor(() => expect(del).toHaveBeenCalledWith('/api/municipalities/3/'))
     expect(await screen.findByText(labels.deletedWithStaff(2))).toBeInTheDocument()
+  })
+
+  it('dice cuántas áreas operativas quedaron desactivadas', async () => {
+    // La baja arrastra las dependencias del municipio, no solo a su personal:
+    // es una consecuencia que ocurre en la pantalla de áreas.
+    vi.spyOn(apiClient, 'delete').mockResolvedValue({
+      data: { deactivated_users: 0, deactivated_areas: 3 },
+    } as never)
+    const user = userEvent.setup()
+
+    renderWithProviders(<MunicipalitiesPage />)
+    await user.click(await screen.findByRole('button', { name: labels.delete }))
+    await user.click(screen.getByRole('button', { name: labels.deleteConfirm }))
+
+    expect(await screen.findByText(labels.deletedWithAreas(3))).toBeInTheDocument()
+  })
+
+  it('nombra las dos consecuencias por separado cuando caen juntas', async () => {
+    vi.spyOn(apiClient, 'delete').mockResolvedValue({
+      data: { deactivated_users: 2, deactivated_areas: 1 },
+    } as never)
+    const user = userEvent.setup()
+
+    renderWithProviders(<MunicipalitiesPage />)
+    await user.click(await screen.findByRole('button', { name: labels.delete }))
+    await user.click(screen.getByRole('button', { name: labels.deleteConfirm }))
+
+    expect(
+      await screen.findByText(labels.deletedWithStaffAndAreas(2, 1)),
+    ).toBeInTheDocument()
+  })
+
+  it('sin nada que arrastrar, el aviso no inventa consecuencias', async () => {
+    vi.spyOn(apiClient, 'delete').mockResolvedValue({
+      data: { deactivated_users: 0, deactivated_areas: 0 },
+    } as never)
+    const user = userEvent.setup()
+
+    renderWithProviders(<MunicipalitiesPage />)
+    await user.click(await screen.findByRole('button', { name: labels.delete }))
+    await user.click(screen.getByRole('button', { name: labels.deleteConfirm }))
+
+    expect(await screen.findByText(labels.deleted)).toBeInTheDocument()
   })
 })

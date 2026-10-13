@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
   Clock,
+  EyeOff,
   MapPin,
   ShieldCheck,
   ThumbsUp,
@@ -23,6 +24,8 @@ import { useReportDetail } from './api/reportDetail'
 import { ReportCategoryLabel } from './components/ReportCategory'
 import { ReportMap } from './components/ReportMap'
 import { ReportStatusBadge } from './components/ReportStatusBadge'
+import { ProcessingPhoto } from './components/ProcessingPhoto'
+import { RemovedPhoto } from './components/RemovedPhoto'
 import { AreaCard } from './components/AreaCard'
 import { OfficialResponses } from './components/OfficialResponses'
 import { ObjectionDeadline, ResolutionThread } from './components/ResolutionThread'
@@ -165,12 +168,58 @@ export function ReportDetailPage() {
                   <ReportStatusBadge status={report.status} />
                 </CardHeader>
                 <CardContent className="space-y-5">
-                  {report.photo && (
+                  {/* El panel no es una vista pública y sigue mostrando el
+                      reporte, pero el agente tiene que saber por qué el vecino
+                      no lo encuentra (US-043). */}
+                  {/* Retirado por protección de datos (US-043): el municipio
+                      lo sigue viendo, pero nadie más. */}
+                  {report.photo_removed_at && (
+                    <p
+                      role="status"
+                      className="flex items-start gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground"
+                    >
+                      <EyeOff className="mt-0.5 size-4 shrink-0" aria-hidden />
+                      {messages.reportDetail.withdrawn}
+                    </p>
+                  )}
+                  {report.under_privacy_review && (
+                    <p
+                      role="status"
+                      className="flex items-start gap-2 rounded-lg bg-destructive/5 px-3 py-2.5 text-sm text-destructive ring-1 ring-destructive/20 ring-inset"
+                    >
+                      <EyeOff className="mt-0.5 size-4 shrink-0" aria-hidden />
+                      {messages.reportDetail.underPrivacyReview}
+                    </p>
+                  )}
+                  {/* Todavía no se publicó: su imagen sigue en el difuminado,
+                      o no se pudo difuminar (US-042). El panel lo ve igual,
+                      pero no lo puede gestionar y el vecino no lo ve. */}
+                  {!report.photo_removed_at && report.photo_status !== 'procesada' && (
+                    <p
+                      role="status"
+                      className="flex items-start gap-2 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground"
+                    >
+                      <EyeOff className="mt-0.5 size-4 shrink-0" aria-hidden />
+                      {report.photo_status === 'fallida'
+                        ? messages.reportDetail.photoProcessingFailed
+                        : messages.reportDetail.notPublishedYet}
+                    </p>
+                  )}
+                  {/* Precedencia: retirada gana sobre el difuminado. Si la
+                      foto se sacó por protección de datos, en qué quedó el
+                      procesamiento ya no le importa a nadie. */}
+                  {report.photo ? (
                     <img
                       src={report.photo}
                       alt=""
                       className="max-h-96 w-full rounded-lg object-cover ring-1 ring-border"
                     />
+                  ) : report.photo_removed_at ? (
+                    <RemovedPhoto />
+                  ) : (
+                    report.photo_status !== 'procesada' && (
+                      <ProcessingPhoto failed={report.photo_status === 'fallida'} />
+                    )
                   )}
                   <div className="space-y-1.5">
                     <SectionLabel>{messages.reportDetail.description}</SectionLabel>

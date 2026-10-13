@@ -18,12 +18,14 @@ const ROW: PanelReportRow = {
   latitude: '-32.4',
   longitude: '-63.2',
   like_count: 5,
+  photo_status: 'procesada',
   operative_area: null,
   has_official_response: false,
   municipality: { id: 3, city: 'Villa María', province: 'Córdoba' },
   author: { id: 1, name: 'Vecina', avatar: null },
   validation: null,
   closure: null,
+  needs_closure_review: false,
 }
 
 beforeEach(() => {

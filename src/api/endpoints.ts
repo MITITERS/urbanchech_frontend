@@ -79,6 +79,15 @@ export const endpoints = {
     /** Publicación de una respuesta oficial (US-024). Solo alta. */
     officialResponses: (id: number) => `${API}/panel/reports/${id}/official-responses/`,
   },
+  /**
+   * Solicitudes por dato personal visible (US-043). Las resuelve el admin de
+   * la plataforma, de todas las municipalidades: no pasan por jurisdicción.
+   */
+  privacyRequests: {
+    list: `${API}/platform/privacy-requests/`,
+    removeImage: (id: number) => `${API}/platform/privacy-requests/${id}/remove-image/`,
+    dismiss: (id: number) => `${API}/platform/privacy-requests/${id}/dismiss/`,
+  },
   reports: {
     list: `${API}/reports/`,
     detail: (id: number) => `${API}/reports/${id}/`,

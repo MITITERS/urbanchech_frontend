@@ -174,4 +174,38 @@ describe('AreasPage', () => {
       expect(post).toHaveBeenCalledWith('/api/operational-areas/9/activate/'),
     )
   })
+
+  it('con la municipalidad dada de baja, reactivar muestra el motivo del servidor', async () => {
+    // El área no vuelve a operar mientras su municipalidad esté de baja: la
+    // regla la sostiene el backend, y la pantalla dice lo que él contesta en
+    // lugar de un texto genérico.
+    stubApi({
+      ...OBRAS,
+      is_active: false,
+      municipality: { ...VILLA_MARIA, is_active: false },
+    })
+    const detail =
+      'No se puede reactivar esta área: su municipalidad está dada de baja. Volvé a darla de alta primero.'
+    const post = vi.spyOn(apiClient, 'post').mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 400, data: { detail } },
+    })
+    const user = userEvent.setup()
+
+    renderWithProviders(<AreasPage />)
+    await user.click(
+      screen.getByRole('tab', { name: new RegExp(messages.areas.tabArchived) }),
+    )
+    await user.click(
+      await screen.findByRole('button', { name: messages.areas.activate }),
+    )
+
+    expect(await screen.findByText(detail)).toBeInTheDocument()
+    // Se intentó una sola vez y el área sigue del lado de las archivadas: el
+    // rechazo del servidor no se reintenta ni se traga.
+    expect(post).toHaveBeenCalledTimes(1)
+    expect(
+      await screen.findByRole('button', { name: messages.areas.activate }),
+    ).toBeInTheDocument()
+  })
 })

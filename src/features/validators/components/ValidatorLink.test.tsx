@@ -28,6 +28,7 @@ function row(overrides: Partial<PanelReportRow> = {}): PanelReportRow {
     latitude: '-32.4',
     longitude: '-63.2',
     like_count: 0,
+    photo_status: 'procesada',
     operative_area: null,
     has_official_response: false,
     municipality: null,
@@ -39,6 +40,7 @@ function row(overrides: Partial<PanelReportRow> = {}): PanelReportRow {
     },
     // Solo viaja al filtrar por operario; en el perfil del validador va nulo.
     closure: null,
+    needs_closure_review: false,
     ...overrides,
   }
 }

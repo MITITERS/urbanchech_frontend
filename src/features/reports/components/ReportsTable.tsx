@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MapPin, MessageSquareDot, ThumbsUp } from 'lucide-react'
+import { EyeOff, MapPin, MessageSquareDot, ScanSearch, ThumbsUp } from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -50,7 +50,40 @@ export function ReportsTable({ reports }: { reports: PanelReportRow[] }) {
               <ReportCategoryLabel category={report.category} />
             </TableCell>
             <TableCell>
-              <ReportStatusBadge status={report.status} />
+              <span className="flex flex-wrap items-center gap-1.5">
+                <ReportStatusBadge status={report.status} />
+                {/* US-015, escenario 3: el cierre que la comparación automática
+                    marcó como dudoso, para priorizarlo mientras corre la
+                    ventana de objeción. Es un indicio, no un veredicto. */}
+                {report.needs_closure_review && (
+                  <Badge
+                    variant="outline"
+                    title={messages.reports.closureReviewHint}
+                    className="gap-1 border-transparent bg-status-pending/12 text-status-pending ring-1 ring-status-pending/25 ring-inset"
+                  >
+                    <ScanSearch className="size-3" aria-hidden />
+                    {messages.reports.closureReview}
+                  </Badge>
+                )}
+                {/* US-042: el vecino todavía no ve este reporte porque su
+                    imagen sigue en el difuminado. El panel es el único lugar
+                    donde aparece, así que tiene que decir en qué estado está o
+                    el agente lo trata como cualquier otro. */}
+                {report.photo_status !== 'procesada' && (
+                  <Badge
+                    variant="outline"
+                    title={
+                      report.photo_status === 'fallida'
+                        ? messages.reports.notPublishedFailedHint
+                        : messages.reports.notPublishedHint
+                    }
+                    className="gap-1 border-transparent bg-muted text-muted-foreground ring-1 ring-border ring-inset"
+                  >
+                    <EyeOff className="size-3" aria-hidden />
+                    {messages.reports.notPublished}
+                  </Badge>
+                )}
+              </span>
             </TableCell>
             <TableCell className="text-muted-foreground">
               {formatDateTime(report.created_at)}

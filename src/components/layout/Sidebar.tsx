@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Building2, FileText, Hammer, ShieldCheck, Users } from 'lucide-react'
+import { Building2, FileText, Hammer, ScanFace, ShieldCheck, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { BrandMark, BrandWordmark } from '@/components/common/Brand'
 import { messages } from '@/config/messages'
@@ -29,6 +29,9 @@ const NAV_ITEMS: readonly NavItem[] = [
   // Al final y después de validadores: es la sección de gestión interna del
   // municipio, la que menos se abre en el día a día del agente.
   { to: '/areas', label: messages.nav.areas, icon: Hammer },
+  // Solo del admin (US-043). Al final: no es alta de nada, es una bandeja que
+  // se atiende cuando entra algo.
+  { to: '/privacidad', label: messages.nav.privacy, icon: ScanFace },
 ]
 
 export function Sidebar({ role }: { role: Role }) {

@@ -4,7 +4,15 @@ import { messages } from '@/config/messages'
 import { OperatorLink } from '@/features/areas/components/OperatorLink'
 import { formatDateTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import type { PanelReportDetail, ResolutionAppeal, ResolutionEvidence } from '../types'
+import type {
+  PanelReportDetail,
+  PhotoStatus,
+  ResolutionAppeal,
+  ResolutionEvidence,
+} from '../types'
+import { ProcessingPhoto } from './ProcessingPhoto'
+import { RemovedPhoto } from './RemovedPhoto'
+import { ResolutionComparisonCard } from './ResolutionComparisonCard'
 
 /**
  * El historial de cierres y objeciones del reporte (US-046 y US-048).
@@ -37,6 +45,16 @@ export function ResolutionThread({ report }: { report: PanelReportDetail }) {
             // único es una etiqueta que no distingue nada.
             attempt={report.resolution_evidences.length > 1 ? index + 1 : null}
           />
+          {/* La comparación automática de **este** cierre (US-015). Cada
+              cierre trae la suya, así que después de una objeción se ven los
+              dos veredictos. Siempre contra la foto original del reporte. */}
+          {evidence.comparison && (
+            <ResolutionComparisonCard
+              comparison={evidence.comparison}
+              originalPhoto={report.photo}
+              resolutionPhoto={evidence.photo}
+            />
+          )}
           {report.resolution_appeals
             .filter((appeal) => appeal.evidence?.id === evidence.id)
             .map((appeal) => (
@@ -68,6 +86,8 @@ function ThreadCard({
   body,
   meta,
   photo,
+  photoRemoved = false,
+  photoStatus = 'procesada',
 }: {
   tone: 'resolved' | 'rejected'
   icon: ReactNode
@@ -75,6 +95,10 @@ function ThreadCard({
   body: string
   meta: ReactNode
   photo: string | null
+  /** Se retiró por protección de datos (US-043, escenario 11). */
+  photoRemoved?: boolean
+  /** El difuminado de esta foto (US-042, escenario 8). */
+  photoStatus?: PhotoStatus
 }) {
   return (
     <article
@@ -111,6 +135,18 @@ function ThreadCard({
             // Mismo tratamiento que la foto del reporte, arriba en esta pantalla.
             className="max-h-64 w-full rounded-lg object-cover ring-1 ring-border"
           />
+        </div>
+      )}
+      {/* Retirada gana sobre el difuminado: si la foto se sacó por protección
+          de datos, en qué quedó el procesamiento ya no importa. */}
+      {!photo && photoRemoved && (
+        <div className="px-3.5 pb-3.5">
+          <RemovedPhoto />
+        </div>
+      )}
+      {!photo && !photoRemoved && photoStatus !== 'procesada' && (
+        <div className="px-3.5 pb-3.5">
+          <ProcessingPhoto failed={photoStatus === 'fallida'} />
         </div>
       )}
     </article>
@@ -156,6 +192,8 @@ function EvidenceCard({
         </>
       }
       photo={evidence.photo}
+      photoRemoved={evidence.photo_removed_at !== null}
+      photoStatus={evidence.photo_status}
     />
   )
 }
@@ -178,6 +216,7 @@ function AppealCard({ appeal }: { appeal: ResolutionAppeal }) {
         </>
       }
       photo={appeal.photo}
+      photoStatus={appeal.photo_status}
     />
   )
 }

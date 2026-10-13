@@ -66,6 +66,7 @@ export function useReportFilters() {
       zone: searchParams.get('zone') ?? '',
       createdFrom: searchParams.get('created_from') ?? '',
       createdTo: searchParams.get('created_to') ?? '',
+      closureReview: searchParams.get('closure_review') === 'true',
       ordering: (ORDERINGS.find((o) => o === searchParams.get('ordering')) ??
         DEFAULT_ORDERING) as ReportOrdering,
       page: Math.max(FIRST_PAGE, Number(searchParams.get('page')) || FIRST_PAGE),
@@ -92,6 +93,7 @@ export function useReportFilters() {
       if (next.zone) params.set('zone', next.zone)
       if (next.createdFrom) params.set('created_from', next.createdFrom)
       if (next.createdTo) params.set('created_to', next.createdTo)
+      if (next.closureReview) params.set('closure_review', 'true')
       if (next.ordering !== DEFAULT_ORDERING) params.set('ordering', next.ordering)
       if (next.pageSize !== DEFAULT_PAGE_SIZE) {
         params.set('page_size', String(next.pageSize))
@@ -112,6 +114,7 @@ export function useReportFilters() {
     filters.zone !== '' ||
     filters.createdFrom !== '' ||
     filters.createdTo !== '' ||
+    filters.closureReview ||
     filters.statuses.join(',') !== DEFAULT_STATUS_FILTER.join(',')
 
   return { filters, update, clear, isFiltered, orderings: ORDERINGS }

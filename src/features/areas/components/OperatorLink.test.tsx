@@ -29,12 +29,14 @@ function row(overrides: Partial<PanelReportRow> = {}): PanelReportRow {
     latitude: '-32.4',
     longitude: '-63.2',
     like_count: 0,
+    photo_status: 'procesada',
     operative_area: null,
     has_official_response: false,
     municipality: null,
     author: { id: 1, name: 'Vecina', avatar: null },
     validation: null,
     closure: { closed_at: '2026-09-05T10:00:00Z' },
+    needs_closure_review: false,
     ...overrides,
   }
 }

@@ -3,6 +3,7 @@ import { MemoryRouter, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_PAGE_SIZE } from '@/config/constants'
+import { toQueryParams } from '../api/reports'
 import { DEFAULT_STATUS_FILTER, REPORT_STATUSES } from '../types'
 import { useReportFilters } from './useReportFilters'
 
@@ -38,6 +39,22 @@ describe('useReportFilters', () => {
       ordering: '-like_count',
       page: 3,
     })
+  })
+
+  it('keeps the closures-to-review filter in the URL (US-015)', () => {
+    const { result } = renderFilters()
+
+    act(() => result.current.update({ closureReview: true }))
+
+    expect(result.current.location.search).toContain('closure_review=true')
+    expect(result.current.filters.closureReview).toBe(true)
+    expect(result.current.isFiltered).toBe(true)
+    expect(toQueryParams(result.current.filters).closure_review).toBe('true')
+
+    act(() => result.current.update({ closureReview: false }))
+
+    expect(result.current.location.search).not.toContain('closure_review')
+    expect(toQueryParams(result.current.filters)).not.toHaveProperty('closure_review')
   })
 
   it('writes a filter change back into the URL', () => {
