@@ -184,7 +184,7 @@ describe('normalizeError', () => {
     expect(error.message).toBe('Contraseña incorrecta.')
   })
 
-  it('CP-SEC05-81 · un 429 de allauth se explica en castellano y sin campos', () => {
+  it('CP-SEC05-P01 · un 429 de allauth se explica en castellano y sin campos', () => {
     const error = normalizeError(
       axiosErrorWith(429, {
         status: 429,
@@ -202,7 +202,7 @@ describe('normalizeError', () => {
     expect(error.fieldErrors).toEqual({})
   })
 
-  it('CP-SEC05-82 · un 429 de la API conserva su detail, que ya trae el tiempo de espera', () => {
+  it('CP-SEC05-P02 · un 429 de la API conserva su detail, que ya trae el tiempo de espera', () => {
     const detail =
       'Hiciste demasiadas solicitudes seguidas. Probá de nuevo en 5 minutos.'
     const error = normalizeError(
@@ -212,7 +212,7 @@ describe('normalizeError', () => {
     expect(error.message).toBe(detail)
   })
 
-  it('CP-SEC05-83 · un 429 sin cuerpo JSON también se explica', () => {
+  it('CP-SEC05-P03 · un 429 sin cuerpo JSON también se explica', () => {
     const error = normalizeError(axiosErrorWith(429, '<html>Too Many Requests</html>'))
 
     expect(error.message).toBe(messages.errors.tooManyRequests)

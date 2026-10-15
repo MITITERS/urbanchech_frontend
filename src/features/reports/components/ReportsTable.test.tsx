@@ -46,7 +46,7 @@ function rowFor(number: number): HTMLElement {
 }
 
 describe('ReportsTable', () => {
-  it('CP-015-86 (US-015 E3) · señala el cierre que la comparación automática marcó como dudoso', () => {
+  it('CP-015-P06 (US-015 E3) · señala el cierre que la comparación automática marcó como dudoso', () => {
     renderWithProviders(
       <ReportsTable
         reports={[

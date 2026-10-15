@@ -192,7 +192,7 @@ describe('ReportDetailPage — a dónde vuelve cada rol', () => {
 })
 
 describe('ReportDetailPage — protección de datos (US-043)', () => {
-  it('CP-043-83 (US-043 E10) · avisa que el reporte está oculto mientras se revisa la imagen', async () => {
+  it('CP-043-P03 (US-043 E10) · avisa que el reporte está oculto mientras se revisa la imagen', async () => {
     mockedRole.current = ROLES.MUNICIPAL_AGENT
     vi.spyOn(apiClient, 'get').mockResolvedValue({
       data: { ...DETAIL, under_privacy_review: true },
@@ -216,7 +216,7 @@ describe('ReportDetailPage — protección de datos (US-043)', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('CP-042-81 (US-042 E6) · dice que un reporte sin difuminar todavía no es público (US-042)', async () => {
+  it('CP-042-P01 (US-042 E6) · dice que un reporte sin difuminar todavía no es público (US-042)', async () => {
     mockedRole.current = ROLES.MUNICIPAL_AGENT
     vi.spyOn(apiClient, 'get').mockResolvedValue({
       data: {
@@ -235,7 +235,7 @@ describe('ReportDetailPage — protección de datos (US-043)', () => {
     expect(screen.getByText(messages.reportDetail.photoProcessing)).toBeVisible()
   })
 
-  it('CP-043-84 (US-043 E5) · una foto retirada gana sobre el difuminado: ya no importa en qué quedó', async () => {
+  it('CP-043-P04 (US-043 E5) · una foto retirada gana sobre el difuminado: ya no importa en qué quedó', async () => {
     mockedRole.current = ROLES.MUNICIPAL_AGENT
     vi.spyOn(apiClient, 'get').mockResolvedValue({
       data: {
@@ -254,7 +254,7 @@ describe('ReportDetailPage — protección de datos (US-043)', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('CP-043-85 (US-043 E5) · una foto retirada se muestra como retirada, no como un hueco', async () => {
+  it('CP-043-P05 (US-043 E5) · una foto retirada se muestra como retirada, no como un hueco', async () => {
     mockedRole.current = ROLES.MUNICIPAL_AGENT
     vi.spyOn(apiClient, 'get').mockResolvedValue({
       data: { ...DETAIL, photo: null, photo_removed_at: '2026-09-03T10:00:00Z' },

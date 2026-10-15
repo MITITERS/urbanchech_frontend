@@ -81,7 +81,7 @@ function detail(overrides: Partial<PanelReportDetail> = {}): PanelReportDetail {
 }
 
 describe('ResolutionThread', () => {
-  it('CP-043-81 (US-043 E11) · una foto de cierre retirada deja el aviso y conserva el parte (US-043)', () => {
+  it('CP-043-P01 (US-043 E11) · una foto de cierre retirada deja el aviso y conserva el parte (US-043)', () => {
     renderWithProviders(
       <ResolutionThread
         report={detail({
@@ -96,7 +96,7 @@ describe('ResolutionThread', () => {
     expect(screen.getByText(/Se rellenó el bache/)).toBeInTheDocument()
   })
 
-  it('CP-043-82 (US-043 E11) · una foto de objeción retirada deja el aviso y conserva el motivo (US-043)', () => {
+  it('CP-043-P02 (US-043 E11) · una foto de objeción retirada deja el aviso y conserva el motivo (US-043)', () => {
     renderWithProviders(
       <ResolutionThread
         report={detail({
@@ -226,7 +226,7 @@ describe('ResolutionThread, comparación automática (US-015)', () => {
     completed_at: '2026-09-01T10:00:05Z',
   }
 
-  it('CP-015-88 (US-015 E7) · después de una objeción se ven los veredictos de los dos cierres', () => {
+  it('CP-015-P08 (US-015 E7) · después de una objeción se ven los veredictos de los dos cierres', () => {
     const first = evidence({
       id: 1,
       comparison: { ...comparison, verdict: 'problema_persistente', is_doubtful: true },

@@ -48,7 +48,7 @@ afterEach(() => {
 })
 
 describe('LoginPage', () => {
-  it('CP-SEC05-84 · el bloqueo por intentos dice que hay que esperar', async () => {
+  it('CP-SEC05-P04 · el bloqueo por intentos dice que hay que esperar', async () => {
     vi.spyOn(authApi, 'login').mockRejectedValue(
       createApiError(429, messages.errors.tooManyRequests),
     )
@@ -60,7 +60,7 @@ describe('LoginPage', () => {
     expect(screen.queryByText(messages.auth.invalidCredentials)).toBeNull()
   })
 
-  it('CP-SEC05-85 · una contraseña equivocada sigue diciendo lo de siempre, sin más detalle', async () => {
+  it('CP-SEC05-P05 · una contraseña equivocada sigue diciendo lo de siempre, sin más detalle', async () => {
     vi.spyOn(authApi, 'login').mockRejectedValue(
       createApiError(
         400,

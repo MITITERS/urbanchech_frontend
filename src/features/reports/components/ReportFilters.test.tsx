@@ -273,7 +273,7 @@ describe('ReportFilters, limpiar', () => {
 })
 
 describe('ReportFilters, cierres a revisar (US-015)', () => {
-  it('CP-015-87 (US-015 E3) · el botón activa el filtro', async () => {
+  it('CP-015-P07 (US-015 E3) · el botón activa el filtro', async () => {
     const { onChange, user } = renderFilters()
 
     await user.click(screen.getByRole('button', { name: labels.closureReview }))
