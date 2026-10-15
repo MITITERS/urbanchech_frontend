@@ -32,9 +32,13 @@ export interface PrivacyRequest {
   /** Si se resolvió dentro del plazo: la evidencia de cumplimiento. */
   resolved_within_deadline: boolean | null
   image: {
-    /** La foto del reporte, o la de un cierre del operario (escenario 11). */
-    kind: 'report' | 'resolution_evidence'
+    /**
+     * La foto del reporte, la de un cierre del operario (escenario 11) o la de
+     * una objeción del autor (escenario 1).
+     */
+    kind: 'report' | 'resolution_evidence' | 'resolution_appeal'
     evidence_id: number | null
+    appeal_id: number | null
     /**
      * Nula si se eliminó, o si el autor la reemplazó mientras tanto: lo que se
      * mostraría entonces no es lo que se denunció.

@@ -165,8 +165,13 @@ export interface ResolutionEvidence {
 /** La objeción del autor a un cierre (US-048). */
 export interface ResolutionAppeal {
   id: number
-  /** Nula mientras el difuminado no termina (US-042). */
+  /**
+   * Nula mientras el difuminado no termina (US-042), si se retiró (US-043) o
+   * mientras está en revisión por dato personal.
+   */
   photo: string | null
+  /** La foto se retiró por protección de datos (US-043, escenario 1). */
+  photo_removed_at: string | null
   photo_status: PhotoStatus
   reason: string
   created_at: string

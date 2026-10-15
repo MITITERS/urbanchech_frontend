@@ -132,11 +132,14 @@ export function PrivacyRequestsTable({
   )
 }
 
+const IMAGE_LABEL: Record<PrivacyRequest['image']['kind'], string> = {
+  report: messages.privacy.reportPhoto,
+  resolution_evidence: messages.privacy.evidencePhoto,
+  resolution_appeal: messages.privacy.appealPhoto,
+}
+
 function ImageCell({ request }: { request: PrivacyRequest }) {
-  const label =
-    request.image.kind === 'report'
-      ? messages.privacy.reportPhoto
-      : messages.privacy.evidencePhoto
+  const label = IMAGE_LABEL[request.image.kind]
   return (
     <figure className="space-y-1">
       {request.image.url ? (

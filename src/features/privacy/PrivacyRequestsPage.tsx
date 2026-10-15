@@ -18,6 +18,13 @@ import type { PrivacyRequest, PrivacyRequestState } from './types'
 
 const HTTP_CONFLICT = 409
 
+/** Qué se le confirma al administrador según la imagen que eliminó. */
+const REMOVED_MESSAGE: Record<PrivacyRequest['image']['kind'], string> = {
+  report: messages.privacy.removedReport,
+  resolution_evidence: messages.privacy.removedEvidence,
+  resolution_appeal: messages.privacy.removedAppeal,
+}
+
 /**
  * US-043 — bandeja de solicitudes por dato personal visible.
  *
@@ -58,9 +65,7 @@ export function PrivacyRequestsPage() {
     toast.success(
       decision.decision === 'dismiss'
         ? messages.privacy.dismissed
-        : decision.request.image.kind === 'report'
-          ? messages.privacy.removedReport
-          : messages.privacy.removedEvidence,
+        : REMOVED_MESSAGE[decision.request.image.kind],
     )
     setDecision(null)
   }

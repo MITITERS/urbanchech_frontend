@@ -216,6 +216,7 @@ function AppealCard({ appeal }: { appeal: ResolutionAppeal }) {
         </>
       }
       photo={appeal.photo}
+      photoRemoved={appeal.photo_removed_at !== null}
       photoStatus={appeal.photo_status}
     />
   )

@@ -27,7 +27,12 @@ function request(overrides: Partial<PrivacyRequest> = {}): PrivacyRequest {
     resolved_at: null,
     resolved_by: null,
     resolved_within_deadline: null,
-    image: { kind: 'report', evidence_id: null, url: 'https://example.test/face.jpg' },
+    image: {
+      kind: 'report',
+      evidence_id: null,
+      appeal_id: null,
+      url: 'https://example.test/face.jpg',
+    },
     report: {
       id: 42,
       number: 7,
@@ -57,7 +62,7 @@ const RESOLVED = request({
   resolved_by: { id: 1, name: 'Admin Plataforma', email: 'admin@example.test' },
   resolved_within_deadline: true,
   remaining_seconds: null,
-  image: { kind: 'report', evidence_id: null, url: null },
+  image: { kind: 'report', evidence_id: null, appeal_id: null, url: null },
 })
 
 function stubApi({
@@ -87,6 +92,27 @@ describe('PrivacyRequestsPage', () => {
     ).toHaveAttribute('src', 'https://example.test/face.jpg')
     expect(within(row).getByText(/Villa María/)).toBeInTheDocument()
     expect(within(row).getByText(/^Quedan 21 h/)).toBeInTheDocument()
+  })
+
+  it('la foto de una objeción se nombra como tal (US-043, escenario 1)', async () => {
+    stubApi({
+      pending: [
+        request({
+          image: {
+            kind: 'resolution_appeal',
+            evidence_id: null,
+            appeal_id: 5,
+            url: 'https://example.test/objecion.jpg',
+          },
+        }),
+      ],
+    })
+    renderWithProviders(<PrivacyRequestsPage />)
+
+    const row = await screen.findByRole('row', { name: /Reporte #7/ })
+    expect(
+      within(row).getByRole('img', { name: messages.privacy.appealPhoto }),
+    ).toHaveAttribute('src', 'https://example.test/objecion.jpg')
   })
 
   it('respeta el orden del servidor y señala la que está fuera de plazo', async () => {

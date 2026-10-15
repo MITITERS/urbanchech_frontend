@@ -31,6 +31,7 @@ function appeal(overrides: Partial<ResolutionAppeal> = {}): ResolutionAppeal {
   return {
     id: 1,
     photo: 'https://example.test/appeal.jpg',
+    photo_removed_at: null,
     photo_status: 'procesada',
     reason: 'El bache sigue igual que antes.',
     created_at: '2026-09-02T10:00:00Z',
@@ -93,6 +94,21 @@ describe('ResolutionThread', () => {
 
     expect(screen.getByText(messages.reportDetail.photoRemoved)).toBeInTheDocument()
     expect(screen.getByText(/Se rellenó el bache/)).toBeInTheDocument()
+  })
+
+  it('una foto de objeción retirada deja el aviso y conserva el motivo (US-043)', () => {
+    renderWithProviders(
+      <ResolutionThread
+        report={detail({
+          resolution_appeals: [
+            appeal({ photo: null, photo_removed_at: '2026-09-03T10:00:00Z' }),
+          ],
+        })}
+      />,
+    )
+
+    expect(screen.getByText(messages.reportDetail.photoRemoved)).toBeInTheDocument()
+    expect(screen.getByText(/El bache sigue igual/)).toBeInTheDocument()
   })
 
   it('muestra el parte de trabajo con su área', () => {
