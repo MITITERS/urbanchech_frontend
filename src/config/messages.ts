@@ -614,6 +614,10 @@ export const messages = {
     network: 'No pudimos comunicarnos con el servidor.',
     notFound: 'No encontramos lo que buscabas.',
     forbidden: 'No tenés permisos para realizar esta acción.',
+    // Sprint 5, punto 5.1: allauth lo manda en inglés y sin el tiempo de
+    // espera; no dice si la cuenta existe, y este texto tampoco.
+    tooManyRequests:
+      'Hiciste demasiados intentos seguidos. Esperá unos minutos y probá de nuevo.',
   },
   forbidden: {
     title: 'Permisos insuficientes',

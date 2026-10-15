@@ -189,8 +189,20 @@ export function normalizeError(error: unknown): ApiError {
     }
   }
 
+  if (status === HTTP_TOO_MANY_REQUESTS) {
+    // Límite de intentos o de tasa. El de la API llega en castellano y con el
+    // tiempo de espera (`code: "throttled"`); el de allauth —el bloqueo de
+    // login— en inglés y sin campo, así que se reemplaza por el propio.
+    const throttled =
+      isRecord(data) && data.code === 'throttled' && typeof data.detail === 'string'
+    message = throttled ? (data.detail as string) : messages.errors.tooManyRequests
+    return createApiError(status, message)
+  }
+
   return createApiError(status, message, fieldErrors)
 }
+
+const HTTP_TOO_MANY_REQUESTS = 429
 
 function defaultMessageForStatus(status: number): string {
   if (status === 403) return messages.errors.forbidden
