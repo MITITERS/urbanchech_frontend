@@ -83,7 +83,7 @@ beforeEach(() => {
 })
 
 describe('PrivacyRequestsPage', () => {
-  it('lista las pendientes con la imagen, el reporte y su municipio', async () => {
+  it('CP-043-86 (US-043 E4) · lista las pendientes con la imagen, el reporte y su municipio', async () => {
     renderWithProviders(<PrivacyRequestsPage />)
 
     const row = await screen.findByRole('row', { name: /Reporte #7/ })
@@ -94,7 +94,7 @@ describe('PrivacyRequestsPage', () => {
     expect(within(row).getByText(/^Quedan 21 h/)).toBeInTheDocument()
   })
 
-  it('la foto de una objeción se nombra como tal (US-043, escenario 1)', async () => {
+  it('CP-043-87 (US-043 E1) · la foto de una objeción se nombra como tal (US-043, escenario 1)', async () => {
     stubApi({
       pending: [
         request({
@@ -115,7 +115,7 @@ describe('PrivacyRequestsPage', () => {
     ).toHaveAttribute('src', 'https://example.test/objecion.jpg')
   })
 
-  it('respeta el orden del servidor y señala la que está fuera de plazo', async () => {
+  it('CP-043-88 (US-043 E4 y E7) · respeta el orden del servidor y señala la que está fuera de plazo', async () => {
     renderWithProviders(<PrivacyRequestsPage />)
 
     const rows = await screen.findAllByRole('row', { name: /Reporte #/ })
@@ -125,7 +125,7 @@ describe('PrivacyRequestsPage', () => {
     expect(within(rows[1]).queryByText(messages.privacy.overdue)).toBeNull()
   })
 
-  it('eliminar pide confirmación y avisa que es irreversible', async () => {
+  it('CP-043-89 (US-043 E5) · eliminar pide confirmación y avisa que es irreversible', async () => {
     const post = vi.spyOn(apiClient, 'post').mockResolvedValue({
       data: { ...request(), status: 'imagen_eliminada' },
     } as never)
@@ -149,7 +149,7 @@ describe('PrivacyRequestsPage', () => {
     expect(post).toHaveBeenCalledWith(endpoints.privacyRequests.removeImage(1))
   })
 
-  it('desestimar va por su propio endpoint, también con confirmación', async () => {
+  it('CP-043-90 (US-043 E6) · desestimar va por su propio endpoint, también con confirmación', async () => {
     const post = vi
       .spyOn(apiClient, 'post')
       .mockResolvedValue({ data: { ...request(), status: 'desestimada' } } as never)
@@ -167,7 +167,7 @@ describe('PrivacyRequestsPage', () => {
     expect(post).toHaveBeenCalledWith(endpoints.privacyRequests.dismiss(1))
   })
 
-  it('cancelar la confirmación no resuelve nada', async () => {
+  it('CP-043-91 (US-043 E5) · cancelar la confirmación no resuelve nada', async () => {
     const post = vi.spyOn(apiClient, 'post')
     const user = userEvent.setup()
     renderWithProviders(<PrivacyRequestsPage />)
@@ -183,7 +183,7 @@ describe('PrivacyRequestsPage', () => {
     expect(post).not.toHaveBeenCalled()
   })
 
-  it('el registro muestra la decisión, quién y si fue en plazo', async () => {
+  it('CP-043-92 (US-043 E8) · el registro muestra la decisión, quién y si fue en plazo', async () => {
     const user = userEvent.setup()
     renderWithProviders(<PrivacyRequestsPage />)
 
@@ -203,7 +203,7 @@ describe('PrivacyRequestsPage', () => {
     ).toBeNull()
   })
 
-  it('sin pendientes lo dice en vez de dibujar una tabla vacía', async () => {
+  it('CP-043-93 (US-043 E4) · sin pendientes lo dice en vez de dibujar una tabla vacía', async () => {
     stubApi({ pending: [] })
     renderWithProviders(<PrivacyRequestsPage />)
 
