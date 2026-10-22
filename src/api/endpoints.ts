@@ -37,9 +37,8 @@ export const endpoints = {
   municipalities: {
     list: `${API}/municipalities/`,
     detail: (id: number) => `${API}/municipalities/${id}/`,
-    reports: (id: number) => `${API}/municipalities/${id}/reports/`,
-    /** Marcadores sin paginar: el mapa los necesita todos de una. */
-    reportMarkers: (id: number) => `${API}/municipalities/${id}/reports/map/`,
+    /** Las estadísticas de esa municipalidad, vistas por el admin (US-023). */
+    statistics: (id: number) => `${API}/municipalities/${id}/statistics/`,
   },
   municipalAgents: {
     list: `${API}/municipal-agents/`,
@@ -87,6 +86,36 @@ export const endpoints = {
     list: `${API}/platform/privacy-requests/`,
     removeImage: (id: number) => `${API}/platform/privacy-requests/${id}/remove-image/`,
     dismiss: (id: number) => `${API}/platform/privacy-requests/${id}/dismiss/`,
+  },
+  /**
+   * Moderación de contenido (US-049). La bandeja es del agente; las
+   * apelaciones, del agente (las de su municipio) y del admin (todas), las dos
+   * por jurisdicción. La reversión de oficio es solo del admin.
+   */
+  moderation: {
+    list: `${API}/panel/moderation/`,
+    count: `${API}/panel/moderation/count/`,
+    resolved: `${API}/panel/moderation/resolved/`,
+    discard: (reportId: number) => `${API}/panel/moderation/${reportId}/discard/`,
+    dismiss: (reportId: number) => `${API}/panel/moderation/${reportId}/dismiss/`,
+  },
+  /** Estadísticas del agente: una sola respuesta para la sección (US-023). */
+  statistics: {
+    panel: `${API}/panel/statistics/`,
+  },
+  moderationAppeals: {
+    list: `${API}/panel/moderation-appeals/`,
+    accept: (id: number) => `${API}/panel/moderation-appeals/${id}/accept/`,
+    reject: (id: number) => `${API}/panel/moderation-appeals/${id}/reject/`,
+    revert: (reportId: number) =>
+      `${API}/platform/reports/${reportId}/revert-moderation/`,
+  },
+  /**
+   * La página pública de un reporte compartido (US-030): el único endpoint que
+   * responde sin sesión. Se busca por el token del enlace, nunca por id.
+   */
+  publicReports: {
+    detail: (token: string) => `${API}/public/reports/${token}/`,
   },
   reports: {
     list: `${API}/reports/`,

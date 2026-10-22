@@ -110,3 +110,39 @@ export function formatDateOnly(value: string): string {
   const day = String(date.getDate()).padStart(2, '0')
   return `${day}/${month}/${date.getFullYear()}`
 }
+
+const HOUR_SECONDS = 3600
+const DAY_SECONDS = 24 * HOUR_SECONDS
+
+/**
+ * Un tiempo en la unidad que se lee mejor: horas por debajo del día, días por
+ * encima (US-050, escenario 11). Con un decimal y coma, como se escribe acá.
+ * Por debajo de una hora se muestra en minutos para que no diga «0 h».
+ */
+export function formatDuration(seconds: number): string {
+  const one = (value: number) =>
+    value.toLocaleString('es-AR', { maximumFractionDigits: 1 })
+  if (seconds < HOUR_SECONDS) return `${Math.max(1, Math.round(seconds / 60))} min`
+  if (seconds < DAY_SECONDS) return `${one(seconds / HOUR_SECONDS)} h`
+  // Desde diez días el decimal ya no informa nada: «350 días», no «349,8».
+  const days = seconds / DAY_SECONDS
+  const shown = days >= 10 ? String(Math.round(days)) : one(days)
+  return `${shown} ${shown === '1' ? 'día' : 'días'}`
+}
+
+/**
+ * Un tiempo promedio, siempre en horas (US-050). Decisión del usuario del
+ * 21/10: los promedios se comparan entre sí, y con todos en la misma unidad se
+ * ve de un vistazo cuál etapa tarda más. Con un decimal por debajo de diez
+ * horas, enteras por encima —«207 h», no «206,8 h»—, y en minutos por debajo de
+ * una hora para que no diga «0 hs».
+ */
+export function formatHours(seconds: number): string {
+  if (seconds < HOUR_SECONDS) return `${Math.max(1, Math.round(seconds / 60))} min`
+  const hours = seconds / HOUR_SECONDS
+  const shown =
+    hours >= 10
+      ? Math.round(hours).toLocaleString('es-AR')
+      : hours.toLocaleString('es-AR', { maximumFractionDigits: 1 })
+  return `${shown} hs`
+}

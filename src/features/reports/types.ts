@@ -100,6 +100,10 @@ export type TransitionOrigin =
   | 'confirmacion_automatica'
   | 'apelacion_ciudadano'
   | 'archivado_inactividad'
+  /** El agente descartó el reporte al resolver denuncias (US-049). */
+  | 'moderacion_municipal'
+  /** El administrador restituyó un reporte descartado (US-049). */
+  | 'reversion_moderacion'
 
 /** En qué quedó la comparación automática de un cierre (US-015). */
 export type ComparisonStatus =
@@ -253,6 +257,11 @@ export interface PanelReportRow {
    * priorizar qué revisar, no una determinación.
    */
   needs_closure_review: boolean
+  /**
+   * Denuncias por contenido que esperan decisión del agente (US-049). Las de
+   * dato personal no cuentan: las resuelve el administrador.
+   */
+  pending_complaint_count: number
 }
 
 /** El cierre en terreno del operario por el que se filtró (US-046). */
@@ -337,6 +346,41 @@ export interface StatusHistoryEntry {
   created_at: string
 }
 
+/** Qué pasó con una denuncia por contenido (US-021, US-049). */
+export type ContentComplaintStatus = 'pendiente' | 'desestimada' | 'reporte_descartado'
+
+/** Una denuncia por contenido, con la identidad de quien la presentó. */
+export interface ContentComplaint {
+  id: number
+  reason: 'contenido_inapropiado' | 'reporte_falso'
+  reason_label: string
+  comment: string
+  reporter: ReportAuthor | null
+  status: ContentComplaintStatus
+  created_at: string
+  resolved_at: string | null
+}
+
+export type ModerationAppealStatus = 'pendiente' | 'aceptada' | 'rechazada'
+
+/** El descarte por moderación vigente de un reporte (US-049). */
+export interface ActiveDiscard {
+  id: number
+  /** Público: es lo que ve cualquier vecino en el detalle del reporte. */
+  reason: string
+  /** El estado al que vuelve si el administrador lo restituye. */
+  previous_status: ReportStatus
+  decided_by: ReportAuthor | null
+  created_at: string
+  appeal: {
+    id: number
+    status: ModerationAppealStatus
+    reason: string
+    created_at: string
+    resolved_at: string | null
+  } | null
+}
+
 export interface PanelReportDetail {
   id: number
   /** Número dentro de su municipalidad: es como se lo nombra en pantalla. */
@@ -382,6 +426,11 @@ export interface PanelReportDetail {
    */
   resolution_evidences: ResolutionEvidence[]
   resolution_appeals: ResolutionAppeal[]
+  /** Las denuncias por contenido y su estado de resolución (US-049). */
+  complaints: ContentComplaint[]
+  pending_complaint_count: number
+  /** El descarte por moderación vigente, si lo hay (US-049). */
+  moderation: ActiveDiscard | null
   /** Cuándo el operario registró la resolución. Nulo si nadie la registró. */
   closed_at: string | null
   /** Hasta cuándo el autor puede objetar el cierre (US-047). */

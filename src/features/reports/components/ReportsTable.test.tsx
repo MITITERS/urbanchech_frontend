@@ -36,6 +36,7 @@ function row(overrides: Partial<PanelReportRow> = {}): PanelReportRow {
     validation: null,
     closure: null,
     needs_closure_review: false,
+    pending_complaint_count: 0,
     ...overrides,
   }
 }
@@ -46,6 +47,22 @@ function rowFor(number: number): HTMLElement {
 }
 
 describe('ReportsTable', () => {
+  it('CP-049-P13 (US-049 E12) · señala los reportes con denuncias por contenido pendientes', () => {
+    renderWithProviders(
+      <ReportsTable
+        reports={[
+          row({ id: 1, number: 1, pending_complaint_count: 2 }),
+          row({ id: 2, number: 2 }),
+        ]}
+      />,
+    )
+
+    expect(
+      within(rowFor(1)).getByText(messages.moderation.listFlag(2)),
+    ).toBeInTheDocument()
+    expect(within(rowFor(2)).queryByText(/denuncia/)).toBeNull()
+  })
+
   it('CP-015-P06 (US-015 E3) · señala el cierre que la comparación automática marcó como dudoso', () => {
     renderWithProviders(
       <ReportsTable
@@ -61,6 +78,7 @@ describe('ReportsTable', () => {
             number: 8,
             status: 'resuelto_pendiente_confirmacion',
             needs_closure_review: false,
+            pending_complaint_count: 0,
           }),
         ]}
       />,

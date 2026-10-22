@@ -1,5 +1,12 @@
 import { Link } from 'react-router-dom'
-import { EyeOff, MapPin, MessageSquareDot, ScanSearch, ThumbsUp } from 'lucide-react'
+import {
+  EyeOff,
+  Flag,
+  MapPin,
+  MessageSquareDot,
+  ScanSearch,
+  ThumbsUp,
+} from 'lucide-react'
 import {
   Table,
   TableBody,
@@ -63,6 +70,18 @@ export function ReportsTable({ reports }: { reports: PanelReportRow[] }) {
                   >
                     <ScanSearch className="size-3" aria-hidden />
                     {messages.reports.closureReview}
+                  </Badge>
+                )}
+                {/* US-049, escenario 12: denuncias por contenido esperando
+                    la decisión del agente. */}
+                {report.pending_complaint_count > 0 && (
+                  <Badge
+                    variant="outline"
+                    title={messages.moderation.listFlagHint}
+                    className="gap-1 border-transparent bg-destructive/10 text-destructive ring-1 ring-destructive/20 ring-inset"
+                  >
+                    <Flag className="size-3" aria-hidden />
+                    {messages.moderation.listFlag(report.pending_complaint_count)}
                   </Badge>
                 )}
                 {/* US-042: el vecino todavía no ve este reporte porque su

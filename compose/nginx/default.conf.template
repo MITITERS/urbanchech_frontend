@@ -42,6 +42,24 @@ server {
         proxy_set_header Host $host;
     }
 
+    # El enlace para compartir un reporte (US-030). Lo responde Django: las
+    # etiquetas de vista previa para WhatsApp y las redes —que no ejecutan
+    # JavaScript— y la redirección a la página del panel, `/reporte/<token>`.
+    # `X-Forwarded-Proto` es lo que hace que la URL de la foto salga en https.
+    location /r/ {
+        proxy_pass ${API_UPSTREAM};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Universal Links (iOS) y App Links (Android): con la app instalada, el
+    # sistema abre `/r/<token>` en ella. Los sirve Django en el mismo dominio.
+    location /.well-known/ {
+        proxy_pass ${API_UPSTREAM};
+        proxy_set_header Host $host;
+    }
+
     # Client-side routing: every unknown path falls back to the SPA.
     location / {
         try_files $uri $uri/ /index.html;

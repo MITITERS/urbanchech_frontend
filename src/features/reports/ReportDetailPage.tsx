@@ -16,8 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { messages } from '@/config/messages'
 import { AuthorLink } from '@/features/users/components/AuthorLink'
 import { ValidatorLink } from '@/features/validators/components/ValidatorLink'
-import { useAuth } from '@/hooks/useAuth'
-import { ROLES } from '@/types/auth'
+import { ReportModerationCard } from '@/features/moderation/components/ReportModerationCard'
 import { cn } from '@/lib/utils'
 import { formatDateTime } from '@/lib/format'
 import { useReportDetail } from './api/reportDetail'
@@ -68,20 +67,9 @@ export function ReportDetailPage() {
   const reportId = Number(id)
   const query = useReportDetail(reportId)
   const report = query.data
-  const { role } = useAuth()
-  // Los dos roles llegan a esta pantalla desde lugares distintos, así que el
-  // «volver» no puede ser fijo: el agente viene del listado, que es suyo; el
-  // admin viene de la ficha de una municipalidad, y el listado le da
-  // «permisos insuficientes».
-  const back =
-    role === ROLES.PLATFORM_ADMIN
-      ? {
-          to: report?.municipality
-            ? `/municipalidades/${report.municipality.id}`
-            : '/municipalidades',
-          label: messages.reportDetail.backToMunicipality,
-        }
-      : { to: '/reportes', label: messages.reportDetail.backToList }
+  // Los dos roles llegan desde el listado de reportes: el admin también lo
+  // tiene, con la municipalidad elegida en el header.
+  const back = { to: '/reportes', label: messages.reportDetail.backToList }
 
   return (
     <div className="space-y-6">
@@ -327,6 +315,11 @@ export function ReportDetailPage() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Las denuncias por contenido y el descarte, si lo hubo
+                  (US-049): al lado de las acciones, porque son una razón más
+                  para decidir qué hacer con el reporte. */}
+              <ReportModerationCard report={report} />
 
               <Card>
                 <CardHeader>

@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import type * as RouterModule from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiClient } from '@/api/client'
@@ -44,6 +44,9 @@ const DETAIL: PanelReportDetail = {
   closed_at: null,
   objection_deadline: null,
   appeal_count: 0,
+  complaints: [],
+  pending_complaint_count: 0,
+  moderation: null,
 }
 
 const { mockedRole } = vi.hoisted(() => ({
@@ -74,49 +77,16 @@ describe('ReportDetailPage — a dónde vuelve cada rol', () => {
     ).toHaveAttribute('href', '/reportes')
   })
 
-  it('el admin vuelve a la municipalidad, no al listado', async () => {
-    // El listado es del agente: mandarlo ahí le daba «permisos insuficientes».
+  it('el admin también vuelve al listado: lo tiene con la municipalidad del header', async () => {
+    // Desde el selector de municipalidad del header (21/10), el admin tiene el
+    // mismo listado que el agente, acotado a la ciudad elegida.
     mockedRole.current = ROLES.PLATFORM_ADMIN
-
-    renderWithProviders(<ReportDetailPage />)
-
-    // El botón se dibuja antes de que cargue el reporte, así que arranca en el
-    // listado de municipios y se afina cuando llega la jurisdicción.
-    await waitFor(() =>
-      expect(
-        screen.getByRole('link', {
-          name: messages.reportDetail.backToMunicipality,
-        }),
-      ).toHaveAttribute('href', `/municipalidades/${VILLA_MARIA.id}`),
-    )
-  })
-
-  it('ningún rol queda con un enlace al listado ajeno', async () => {
-    mockedRole.current = ROLES.PLATFORM_ADMIN
-
-    renderWithProviders(<ReportDetailPage />)
-    await screen.findByRole('link', {
-      name: messages.reportDetail.backToMunicipality,
-    })
-
-    expect(
-      screen.queryByRole('link', { name: messages.reportDetail.backToList }),
-    ).not.toBeInTheDocument()
-  })
-
-  it('sin municipalidad en el reporte, el admin vuelve al listado de municipios', async () => {
-    mockedRole.current = ROLES.PLATFORM_ADMIN
-    vi.spyOn(apiClient, 'get').mockResolvedValue({
-      data: { ...DETAIL, municipality: null },
-    })
 
     renderWithProviders(<ReportDetailPage />)
 
     expect(
-      await screen.findByRole('link', {
-        name: messages.reportDetail.backToMunicipality,
-      }),
-    ).toHaveAttribute('href', '/municipalidades')
+      await screen.findByRole('link', { name: messages.reportDetail.backToList }),
+    ).toHaveAttribute('href', '/reportes')
   })
 
   it('dice qué validador lo confirmó en terreno', async () => {
