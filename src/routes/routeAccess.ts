@@ -38,6 +38,9 @@ export const ROUTE_ACCESS: readonly RouteAccess[] = [
   { prefix: '/areas', roles: PANEL_ROLES },
   { prefix: '/municipalidades', roles: ADMIN_ONLY },
   { prefix: '/agentes', roles: ADMIN_ONLY },
+  // La protección de datos es obligación de la plataforma, no del municipio
+  // (US-043): el agente no resuelve estas solicitudes ni ve la bandeja.
+  { prefix: '/privacidad', roles: ADMIN_ONLY },
 ]
 
 /** Primera pantalla de cada rol, y destino de «volver al inicio». */

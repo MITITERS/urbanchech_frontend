@@ -18,6 +18,7 @@ export function toQueryParams(filters: ReportFilters): Record<string, string> {
   if (filters.zone) params.zone = filters.zone
   if (filters.createdFrom) params.created_from = filters.createdFrom
   if (filters.createdTo) params.created_to = filters.createdTo
+  if (filters.closureReview) params.closure_review = 'true'
   return params
 }
 

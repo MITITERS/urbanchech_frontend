@@ -32,6 +32,7 @@ const EMPTY: Filters = {
   zone: '',
   createdFrom: '',
   createdTo: '',
+  closureReview: false,
   ordering: '-created_at',
   page: 1,
   pageSize: 20,
@@ -268,5 +269,25 @@ describe('ReportFilters, limpiar', () => {
     await user.click(screen.getByRole('button', { name: labels.clear }))
 
     expect(onClear).toHaveBeenCalledOnce()
+  })
+})
+
+describe('ReportFilters, cierres a revisar (US-015)', () => {
+  it('CP-015-P07 (US-015 E3) · el botón activa el filtro', async () => {
+    const { onChange, user } = renderFilters()
+
+    await user.click(screen.getByRole('button', { name: labels.closureReview }))
+
+    expect(onChange).toHaveBeenLastCalledWith({ closureReview: true })
+  })
+
+  it('activo, se muestra presionado y vuelve a apagarlo', async () => {
+    const { onChange, user } = renderFilters({ closureReview: true })
+
+    const toggle = screen.getByRole('button', { name: labels.closureReview })
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    await user.click(toggle)
+
+    expect(onChange).toHaveBeenLastCalledWith({ closureReview: false })
   })
 })

@@ -26,6 +26,14 @@ import type { MunicipalityDetail } from './types'
 
 const labels = messages.municipalities
 
+/** El aviso de la baja, según qué haya arrastrado. */
+function describeDeletion(users: number, areas: number): string {
+  if (users > 0 && areas > 0) return labels.deletedWithStaffAndAreas(users, areas)
+  if (users > 0) return labels.deletedWithStaff(users)
+  if (areas > 0) return labels.deletedWithAreas(areas)
+  return labels.deleted
+}
+
 /** US-017 — alta, edición, baja y listado de municipalidades. */
 export function MunicipalitiesPage() {
   const query = useMunicipalities()
@@ -36,14 +44,12 @@ export function MunicipalitiesPage() {
 
   const confirmDeletion = async () => {
     if (!pendingDeletion) return
-    const { deactivated_users: deactivated } = await deleteMunicipality.mutateAsync(
-      pendingDeletion.id,
-    )
-    // Cuántas cuentas cayeron con el municipio lo cuenta el servidor: es una
-    // consecuencia que ocurre en otra pantalla, así que se dice acá.
-    toast.success(
-      deactivated > 0 ? labels.deletedWithStaff(deactivated) : labels.deleted,
-    )
+    const { deactivated_users: users, deactivated_areas: areas } =
+      await deleteMunicipality.mutateAsync(pendingDeletion.id)
+    // Qué cayó con el municipio lo cuenta el servidor: son consecuencias que
+    // ocurren en otras pantallas —las cuentas de trabajo y las áreas
+    // operativas—, así que se dicen acá.
+    toast.success(describeDeletion(users, areas))
     setPendingDeletion(null)
   }
 

@@ -5,6 +5,7 @@ import * as authApi from '@/api/auth'
 import { apiClient } from '@/api/client'
 import { messages } from '@/config/messages'
 import { AppRoutes } from '@/routes'
+import { canAccessPath } from '@/routes/routeAccess'
 import { renderWithProviders } from '@/test/renderWithProviders'
 import { ROLES, type AuthUser, type Role } from '@/types/auth'
 
@@ -92,6 +93,10 @@ describe('tabla de acceso', () => {
     expect(
       screen.queryByRole('link', { name: messages.nav.agents }),
     ).not.toBeInTheDocument()
+    // La protección de datos es de la plataforma, no del municipio (US-043).
+    expect(
+      screen.queryByRole('link', { name: messages.nav.privacy }),
+    ).not.toBeInTheDocument()
   })
 
   it('la raíz manda a cada rol a su primera pantalla', async () => {
@@ -114,6 +119,7 @@ describe('tabla de acceso', () => {
       messages.nav.agents,
       messages.nav.validators,
       messages.nav.areas,
+      messages.nav.privacy,
     ])
   })
 
@@ -139,5 +145,12 @@ describe('tabla de acceso', () => {
       messages.nav.validators,
       messages.nav.areas,
     ])
+  })
+})
+
+describe('protección de datos (US-043)', () => {
+  it('el agente no puede abrir la bandeja ni escribiendo la ruta', () => {
+    expect(canAccessPath(ROLES.MUNICIPAL_AGENT, '/privacidad')).toBe(false)
+    expect(canAccessPath(ROLES.PLATFORM_ADMIN, '/privacidad')).toBe(true)
   })
 })

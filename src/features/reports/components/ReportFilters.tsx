@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Search, X } from 'lucide-react'
+import { ScanSearch, Search, X } from 'lucide-react'
 import { DateField } from '@/components/common/DateField'
 import { Button } from '@/components/ui/button'
 import {
@@ -171,6 +171,22 @@ export function ReportFilters({
           value={filters.createdTo}
           onChange={(createdTo) => onChange({ createdTo })}
         />
+      </FilterField>
+
+      <FilterField label={messages.reports.filters.review}>
+        {/* Los cierres que la comparación automática señaló (US-015), para
+            revisarlos antes de que venza la ventana de objeción. */}
+        <Button
+          type="button"
+          variant={filters.closureReview ? 'default' : 'outline'}
+          size="lg"
+          aria-pressed={filters.closureReview}
+          className={cn(!filters.closureReview && 'bg-background')}
+          onClick={() => onChange({ closureReview: !filters.closureReview })}
+        >
+          <ScanSearch className="size-4" aria-hidden />
+          {messages.reports.filters.closureReview}
+        </Button>
       </FilterField>
 
       <FilterField label={messages.reports.filters.ordering} htmlFor="ordering">

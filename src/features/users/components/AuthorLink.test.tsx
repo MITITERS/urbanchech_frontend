@@ -26,6 +26,7 @@ const REPORT = {
   latitude: null,
   longitude: null,
   like_count: 2,
+  photo_status: 'procesada',
   operative_area: null,
   municipality: null,
   author: { id: 7, name: 'Lucas Leone' },

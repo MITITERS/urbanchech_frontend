@@ -14,12 +14,15 @@ function evidence(overrides: Partial<ResolutionEvidence> = {}): ResolutionEviden
   return {
     id: 1,
     photo: 'https://example.test/work.jpg',
+    photo_removed_at: null,
+    photo_status: 'procesada',
     description: 'Se rellenó el bache con asfalto en frío.',
     created_at: '2026-09-01T10:00:00Z',
     operator: OPERATOR,
     operational_area: OBRAS,
     latitude: '-32.41',
     longitude: '-63.24',
+    comparison: null,
     ...overrides,
   }
 }
@@ -28,6 +31,8 @@ function appeal(overrides: Partial<ResolutionAppeal> = {}): ResolutionAppeal {
   return {
     id: 1,
     photo: 'https://example.test/appeal.jpg',
+    photo_removed_at: null,
+    photo_status: 'procesada',
     reason: 'El bache sigue igual que antes.',
     created_at: '2026-09-02T10:00:00Z',
     author: { id: 1, name: 'Vecina', avatar: null },
@@ -42,6 +47,9 @@ function detail(overrides: Partial<PanelReportDetail> = {}): PanelReportDetail {
     number: 7,
     municipality: VILLA_MARIA,
     photo: null,
+    photo_removed_at: null,
+    photo_status: 'procesada',
+    under_privacy_review: false,
     description: 'Bache profundo',
     category: 'bache',
     status: 'resuelto_pendiente_confirmacion',
@@ -73,6 +81,36 @@ function detail(overrides: Partial<PanelReportDetail> = {}): PanelReportDetail {
 }
 
 describe('ResolutionThread', () => {
+  it('CP-043-P01 (US-043 E11) · una foto de cierre retirada deja el aviso y conserva el parte (US-043)', () => {
+    renderWithProviders(
+      <ResolutionThread
+        report={detail({
+          resolution_evidences: [
+            evidence({ photo: null, photo_removed_at: '2026-09-03T10:00:00Z' }),
+          ],
+        })}
+      />,
+    )
+
+    expect(screen.getByText(messages.reportDetail.photoRemoved)).toBeInTheDocument()
+    expect(screen.getByText(/Se rellenó el bache/)).toBeInTheDocument()
+  })
+
+  it('CP-043-P02 (US-043 E11) · una foto de objeción retirada deja el aviso y conserva el motivo (US-043)', () => {
+    renderWithProviders(
+      <ResolutionThread
+        report={detail({
+          resolution_appeals: [
+            appeal({ photo: null, photo_removed_at: '2026-09-03T10:00:00Z' }),
+          ],
+        })}
+      />,
+    )
+
+    expect(screen.getByText(messages.reportDetail.photoRemoved)).toBeInTheDocument()
+    expect(screen.getByText(/El bache sigue igual/)).toBeInTheDocument()
+  })
+
   it('muestra el parte de trabajo con su área', () => {
     renderWithProviders(<ResolutionThread report={detail()} />)
 
@@ -175,6 +213,54 @@ describe('ResolutionThread', () => {
 
     // La objeción aparece una sola vez, bajo el cierre correspondiente.
     expect(screen.getAllByText(messages.reportDetail.appeal)).toHaveLength(1)
+  })
+})
+
+describe('ResolutionThread, comparación automática (US-015)', () => {
+  const comparison = {
+    status: 'completada' as const,
+    is_doubtful: false,
+    explanation: 'Explicación.',
+    model_name: 'gemini-3.8-flash',
+    requested_at: '2026-09-01T10:00:00Z',
+    completed_at: '2026-09-01T10:00:05Z',
+  }
+
+  it('CP-015-P08 (US-015 E7) · después de una objeción se ven los veredictos de los dos cierres', () => {
+    const first = evidence({
+      id: 1,
+      comparison: { ...comparison, verdict: 'problema_persistente', is_doubtful: true },
+    })
+    const second = evidence({
+      id: 2,
+      comparison: { ...comparison, verdict: 'consistente' },
+    })
+
+    renderWithProviders(
+      <ResolutionThread
+        report={detail({
+          photo: 'https://example.test/report.jpg',
+          resolution_evidences: [first, second],
+          resolution_appeals: [appeal({ evidence: first })],
+        })}
+      />,
+    )
+
+    const verdicts = messages.reportDetail.comparison.verdict
+    expect(screen.getByText(verdicts.problema_persistente)).toBeInTheDocument()
+    expect(screen.getByText(verdicts.consistente)).toBeInTheDocument()
+    // Los dos se comparan contra la foto original del reporte.
+    for (const img of screen.getAllByRole('img', {
+      name: messages.reportDetail.comparison.before,
+    })) {
+      expect(img).toHaveAttribute('src', 'https://example.test/report.jpg')
+    }
+  })
+
+  it('un cierre sin comparación no dibuja la tarjeta', () => {
+    renderWithProviders(<ResolutionThread report={detail()} />)
+
+    expect(screen.queryByText(messages.reportDetail.comparison.title)).toBeNull()
   })
 })
 

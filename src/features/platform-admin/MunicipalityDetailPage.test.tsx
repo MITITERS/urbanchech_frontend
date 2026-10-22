@@ -47,12 +47,14 @@ const REPORT: PanelReportRow = {
   latitude: '-32.4',
   longitude: '-63.2',
   like_count: 5,
+  photo_status: 'procesada',
   operative_area: { id: 9, name: 'Obras Públicas', is_active: true },
   has_official_response: false,
   municipality: VILLA_MARIA,
   author: { id: 1, name: 'Vecina', avatar: null },
   validation: null,
   closure: null,
+  needs_closure_review: false,
 }
 
 const MARKER: MunicipalityReportMarker = {

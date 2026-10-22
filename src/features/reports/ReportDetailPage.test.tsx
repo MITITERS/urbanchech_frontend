@@ -15,6 +15,9 @@ const DETAIL: PanelReportDetail = {
   number: 7,
   municipality: VILLA_MARIA,
   photo: null,
+  photo_removed_at: null,
+  photo_status: 'procesada',
+  under_privacy_review: false,
   description: 'Bache profundo',
   category: 'bache',
   status: 'reportado',
@@ -185,5 +188,83 @@ describe('ReportDetailPage — a dónde vuelve cada rol', () => {
 
     expect(await screen.findByText(/#7/)).toBeInTheDocument()
     expect(screen.queryByText(/#42/)).not.toBeInTheDocument()
+  })
+})
+
+describe('ReportDetailPage — protección de datos (US-043)', () => {
+  it('CP-043-P03 (US-043 E10) · avisa que el reporte está oculto mientras se revisa la imagen', async () => {
+    mockedRole.current = ROLES.MUNICIPAL_AGENT
+    vi.spyOn(apiClient, 'get').mockResolvedValue({
+      data: { ...DETAIL, under_privacy_review: true },
+    })
+
+    renderWithProviders(<ReportDetailPage />)
+
+    expect(
+      await screen.findByText(messages.reportDetail.underPrivacyReview),
+    ).toBeVisible()
+  })
+
+  it('sin denuncia pendiente no hay aviso', async () => {
+    mockedRole.current = ROLES.MUNICIPAL_AGENT
+
+    renderWithProviders(<ReportDetailPage />)
+
+    await screen.findByText(/#7/)
+    expect(
+      screen.queryByText(messages.reportDetail.underPrivacyReview),
+    ).not.toBeInTheDocument()
+  })
+
+  it('CP-042-P01 (US-042 E6) · dice que un reporte sin difuminar todavía no es público (US-042)', async () => {
+    mockedRole.current = ROLES.MUNICIPAL_AGENT
+    vi.spyOn(apiClient, 'get').mockResolvedValue({
+      data: {
+        ...DETAIL,
+        photo: null,
+        photo_status: 'pendiente',
+        available_transitions: [],
+      },
+    })
+
+    renderWithProviders(<ReportDetailPage />)
+
+    expect(await screen.findByText(messages.reportDetail.notPublishedYet)).toBeVisible()
+    // Y en el lugar de la foto, por qué no está: un hueco se lee como un
+    // error de carga.
+    expect(screen.getByText(messages.reportDetail.photoProcessing)).toBeVisible()
+  })
+
+  it('CP-043-P04 (US-043 E5) · una foto retirada gana sobre el difuminado: ya no importa en qué quedó', async () => {
+    mockedRole.current = ROLES.MUNICIPAL_AGENT
+    vi.spyOn(apiClient, 'get').mockResolvedValue({
+      data: {
+        ...DETAIL,
+        photo: null,
+        photo_removed_at: '2026-09-03T10:00:00Z',
+        photo_status: 'pendiente',
+      },
+    })
+
+    renderWithProviders(<ReportDetailPage />)
+
+    expect(await screen.findByText(messages.reportDetail.photoRemoved)).toBeVisible()
+    expect(
+      screen.queryByText(messages.reportDetail.photoProcessing),
+    ).not.toBeInTheDocument()
+  })
+
+  it('CP-043-P05 (US-043 E5) · una foto retirada se muestra como retirada, no como un hueco', async () => {
+    mockedRole.current = ROLES.MUNICIPAL_AGENT
+    vi.spyOn(apiClient, 'get').mockResolvedValue({
+      data: { ...DETAIL, photo: null, photo_removed_at: '2026-09-03T10:00:00Z' },
+    })
+
+    renderWithProviders(<ReportDetailPage />)
+
+    expect(await screen.findByText(messages.reportDetail.photoRemoved)).toBeVisible()
+    // Sin foto no se vuelve a publicar: el municipio tiene que saber que
+    // ningún vecino lo ve.
+    expect(screen.getByText(messages.reportDetail.withdrawn)).toBeVisible()
   })
 })

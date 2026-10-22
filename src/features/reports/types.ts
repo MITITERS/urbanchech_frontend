@@ -101,10 +101,53 @@ export type TransitionOrigin =
   | 'apelacion_ciudadano'
   | 'archivado_inactividad'
 
+/** En qué quedó la comparación automática de un cierre (US-015). */
+export type ComparisonStatus =
+  'pendiente' | 'completada' | 'no_disponible' | 'sin_material'
+
+/**
+ * El veredicto de la comparación: un conjunto cerrado. Los tres últimos son los
+ * motivos de un cierre dudoso, y se distinguen porque dicen qué mirar.
+ */
+export type ComparisonVerdict =
+  'consistente' | 'problema_persistente' | 'lugar_distinto' | 'trabajo_incoherente'
+
+/**
+ * La comparación automática entre la foto original y la del cierre (US-015).
+ *
+ * Es una **sugerencia**: no cambia el estado del reporte ni el plazo de
+ * objeción. Solo viaja en el panel; ni el vecino ni el operario la ven.
+ */
+export interface ResolutionComparison {
+  status: ComparisonStatus
+  /** Nulo mientras no hay veredicto: en curso, no disponible o sin material. */
+  verdict: ComparisonVerdict | null
+  is_doubtful: boolean
+  explanation: string
+  /** Qué modelo respondió, para poder auditarlo. */
+  model_name: string
+  requested_at: string
+  completed_at: string | null
+}
+
+/**
+ * En qué anda el difuminado de una imagen (US-042).
+ *
+ * Un reporte solo es público cuando llega a `procesada`. El panel es la única
+ * vista que lo muestra antes —el vecino todavía no lo ve— y por eso necesita
+ * el dato: sin él, una fila sin foto es indistinguible de una con la imagen
+ * retirada por protección de datos.
+ */
+export type PhotoStatus = 'pendiente' | 'procesada' | 'fallida'
+
 /** El parte de trabajo con el que un operario cerró el reporte (US-046). */
 export interface ResolutionEvidence {
   id: number
-  photo: string
+  /** Nula si se retiró por protección de datos (US-043, escenario 11). */
+  photo: string | null
+  photo_removed_at: string | null
+  /** El difuminado de la foto del cierre (US-042, escenario 8). */
+  photo_status: PhotoStatus
   description: string
   created_at: string
   /**
@@ -115,12 +158,21 @@ export interface ResolutionEvidence {
   operational_area: OperativeArea | null
   latitude: string | null
   longitude: string | null
+  /** Nula en los cierres anteriores a US-015, que no se compararon. */
+  comparison: ResolutionComparison | null
 }
 
 /** La objeción del autor a un cierre (US-048). */
 export interface ResolutionAppeal {
   id: number
-  photo: string
+  /**
+   * Nula mientras el difuminado no termina (US-042), si se retiró (US-043) o
+   * mientras está en revisión por dato personal.
+   */
+  photo: string | null
+  /** La foto se retiró por protección de datos (US-043, escenario 1). */
+  photo_removed_at: string | null
+  photo_status: PhotoStatus
   reason: string
   created_at: string
   author: ReportAuthor | null
@@ -165,6 +217,12 @@ export interface PanelReportRow {
   latitude: string | null
   longitude: string | null
   like_count: number
+  /**
+   * Si el reporte todavía no se publicó porque su imagen sigue en el
+   * difuminado (US-042). El agente lo ve acá y el vecino no lo ve en ningún
+   * lado: el panel tiene que poder decirlo.
+   */
+  photo_status: PhotoStatus
   /** El área que se hizo cargo. Nula mientras el reporte no entró en gestión. */
   operative_area: OperativeArea | null
   /**
@@ -189,6 +247,12 @@ export interface PanelReportRow {
    * cierre vigente puede ser de otro operario del área—.
    */
   closure: ReportClosure | null
+  /**
+   * Si la comparación automática señaló el último cierre como dudoso y el
+   * reporte sigue en la ventana de objeción (US-015). Es un indicio para
+   * priorizar qué revisar, no una determinación.
+   */
+  needs_closure_review: boolean
 }
 
 /** El cierre en terreno del operario por el que se filtró (US-046). */
@@ -213,6 +277,8 @@ export interface ReportFilters {
   zone: string
   createdFrom: string
   createdTo: string
+  /** Solo los cierres que la comparación automática señaló como dudosos. */
+  closureReview: boolean
   ordering: ReportOrdering
   page: number
   /** Cuántas filas por página. Lo elige quien mira, no el servidor. */
@@ -278,6 +344,12 @@ export interface PanelReportDetail {
   /** A dónde vuelve el admin, que llega acá desde la ficha de un municipio. */
   municipality: Municipality | null
   photo: string | null
+  /** Cuándo se retiró la foto por protección de datos (US-043). */
+  photo_removed_at: string | null
+  /** Hay una denuncia por dato personal sin resolver: el público no lo ve. */
+  under_privacy_review: boolean
+  /** El difuminado de la imagen (US-042): sin `procesada` no está publicado. */
+  photo_status: PhotoStatus
   description: string
   category: ReportCategory
   status: ReportStatus

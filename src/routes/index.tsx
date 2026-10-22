@@ -4,6 +4,7 @@ import { CHANGE_PASSWORD_ROUTE, LOGIN_ROUTE } from '@/config/constants'
 import { AgentsPage } from '@/features/platform-admin/AgentsPage'
 import { MunicipalitiesPage } from '@/features/platform-admin/MunicipalitiesPage'
 import { MunicipalityDetailPage } from '@/features/platform-admin/MunicipalityDetailPage'
+import { PrivacyRequestsPage } from '@/features/privacy/PrivacyRequestsPage'
 import { AreaDetailPage } from '@/features/areas/AreaDetailPage'
 import { AreasPage } from '@/features/areas/AreasPage'
 import { ValidatorsPage } from '@/features/validators/ValidatorsPage'
@@ -64,6 +65,9 @@ export function AppRoutes() {
           <Route path="/municipalidades" element={<MunicipalitiesPage />} />
           <Route path="/municipalidades/:id" element={<MunicipalityDetailPage />} />
           <Route path="/agentes" element={<AgentsPage />} />
+          {/* Solicitudes por dato personal visible (US-043): de la plataforma,
+              no del municipio. */}
+          <Route path="/privacidad" element={<PrivacyRequestsPage />} />
         </Route>
       </Route>
 

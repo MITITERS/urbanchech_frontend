@@ -771,6 +771,80 @@ En el panel se ve **quién** ejecutó cada cierre. Ante el ciudadano responde el
 área operativa, y esa diferencia la resuelven dos serializers del backend, no un
 flag del cliente.
 
+### La comparación automática es una sugerencia (US-015)
+
+Cada cierre trae la comparación automática entre la foto del reporte y la del
+cierre. `ResolutionComparisonCard` la muestra debajo de ese cierre, con las dos
+fotos lado a lado, el veredicto, la explicación, el modelo y la fecha. **La
+leyenda que dice que es una sugerencia está siempre visible**: el veredicto no
+cambia el estado ni el plazo de objeción, y el panel no ofrece ninguna acción
+nueva por él. El tono de la tarjeta es neutro y solo el veredicto lleva color:
+verde si es consistente, ámbar si es dudoso. Cuando no hay veredicto, dice por
+qué: la comparación está en curso, no está disponible o no hay material.
+
+En el listado, `needs_closure_review` pone un badge ámbar «Cierre a revisar» al
+lado del estado. El filtro «Solo cierres a revisar» manda `closure_review=true`
+y vive en la URL como el resto. La señal se apaga sola al confirmarse el
+reporte: la calcula el backend, no el cliente.
+
+### Protección de datos: una bandeja del admin, no del municipio (US-043)
+
+`/privacidad` es la bandeja del administrador de la plataforma para las
+denuncias de «dato personal visible»: un rostro o una patente que el difuminado
+no detectó. Tiene su propia entrada en `ROUTE_ACCESS`, solo para el admin, y el
+agente no la ve en el menú ni puede abrirla escribiendo la ruta. Es una sección
+aparte y no un filtro de la bandeja municipal, porque el difuminado es una
+obligación de la plataforma.
+
+- **Pendientes** llegan del servidor ordenadas de la más vieja a la más nueva.
+  Como el plazo es el mismo para todas, las vencidas quedan arriba. Cada fila
+  muestra la miniatura (abre la foto completa), el reporte con su municipio, la
+  recepción y el tiempo que queda.
+- **El contador se calcula contra el reloj del navegador** (`useNow`, cada
+  30 s), no contra el `remaining_seconds` de la respuesta. Así una fila pasa a
+  «Fuera de plazo» sin recargar. La lista se vuelve a pedir cada minuto porque
+  ningún aviso le dice al admin que entró una solicitud.
+- **Eliminar imagen** pide confirmación y el texto dice que el archivo se borra
+  y no se puede recuperar. **Desestimar** también pide confirmación. Un `409`
+  significa que otra persona resolvió antes: se avisa y la fila desaparece igual.
+- **Resueltas** es el registro de la RN-12: decisión, quién, cuándo y si fue en
+  plazo.
+
+En el detalle del reporte, `under_privacy_review` muestra un aviso de «oculto
+al público». El panel sigue mostrando el reporte, pero el agente tiene que
+saber por qué el vecino no lo encuentra. Una foto retirada, del reporte o de un
+cierre, se dibuja con `RemovedPhoto` en lugar de dejar un hueco.
+
+**Eliminar la foto del reporte retira el reporte entero**: ningún reporte sin
+foto se vuelve a publicar. El diálogo de confirmación lo dice, y el detalle
+muestra «Retirado de la app». La foto de un cierre, en cambio, se va sola y el
+reporte sigue publicado.
+
+### El panel ve el reporte antes de que el vecino lo vea (US-042)
+
+Un reporte no se publica hasta que su imagen está difuminada. El panel es la
+**única** vista que lo muestra mientras tanto —su autor también lo ve, en la
+app—: no aparece en el feed, ni en el mapa, ni en la búsqueda, ni en la bandeja
+de validación.
+
+- **`photo_status`** (`pendiente` | `procesada` | `fallida`) viaja en la fila
+  del listado, en el detalle, en la evidencia del cierre y en la apelación. Sin
+  ese campo, una tarjeta sin foto es indistinguible de una con la imagen
+  retirada por protección de datos, y el agente trataría el reclamo como
+  cualquier otro sin saber que el vecino no lo ve.
+- **Badge «Sin publicar»** en la tabla, y un aviso en el detalle que explica
+  qué está pasando. En el lugar de la foto va `ProcessingPhoto`, calcado de
+  `RemovedPhoto`. **Precedencia**: retirada gana sobre en procesamiento.
+- **Las acciones no se deshabilitan en el cliente.** El panel dibuja
+  exactamente los botones que `available_transitions` trae, y el backend ya
+  descuenta de esa lista lo que rechazaría: un reporte sin publicar no se
+  gestiona. Dejar el botón y atajar el `409` sería tener la regla en dos
+  lugares. _Cancelar_ y _archivar_ siguen disponibles, porque sacan el reporte
+  de la vista pública en vez de acercarlo a ella.
+- Si el difuminado de la foto de un **cierre** falla, el cierre queda en pie:
+  el parte de trabajo conserva la descripción, la comparación de US-015 queda
+  en «no disponible» y el hilo lo muestra explícito.
+
 ### Sistema visual: tokens, capa de tema y marca
 
 Toda la paleta vive en `src/index.css` como variables de shadcn. Los

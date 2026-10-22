@@ -18,6 +18,7 @@ export const messages = {
     areas: 'Áreas operativas',
     municipalities: 'Municipalidades',
     agents: 'Agentes municipales',
+    privacy: 'Protección de datos',
     logout: 'Cerrar sesión',
   },
   common: {
@@ -80,6 +81,17 @@ export const messages = {
       users === 1
         ? 'Municipalidad eliminada. Su cuenta de trabajo quedó archivada.'
         : `Municipalidad eliminada. Sus ${users} cuentas de trabajo quedaron archivadas.`,
+    // La baja arrastra dos cosas distintas y el aviso las nombra por separado:
+    // quien la ejecuta no ve ninguna de las dos desde esta pantalla, y «lo que
+    // cayó» en una sola cifra no dejaría entender qué hay que volver a habilitar.
+    deletedWithAreas: (areas: number) =>
+      areas === 1
+        ? 'Municipalidad eliminada. Su área operativa quedó desactivada.'
+        : `Municipalidad eliminada. Sus ${areas} áreas operativas quedaron desactivadas.`,
+    deletedWithStaffAndAreas: (users: number, areas: number) =>
+      `Municipalidad eliminada. Quedaron archivadas ${users} ${
+        users === 1 ? 'cuenta de trabajo' : 'cuentas de trabajo'
+      } y desactivadas ${areas} ${areas === 1 ? 'área operativa' : 'áreas operativas'}.`,
     deleteTitle: '¿Eliminar esta municipalidad?',
     deleteDescription:
       'Deja de recibir reportes nuevos y desaparece del listado. Sus reportes y usuarios se conservan para no perder el historial.',
@@ -115,6 +127,16 @@ export const messages = {
     /** Indicador de la columna de respuesta oficial (US-024, escenario 13). */
     answered: 'Respondido',
     unanswered: 'Sin respuesta oficial',
+    /** Señal de la comparación automática del cierre (US-015, escenario 3). */
+    closureReview: 'Cierre a revisar',
+    /** US-042: todavía no se publicó porque su imagen sigue en el difuminado. */
+    notPublished: 'Sin publicar',
+    notPublishedHint:
+      'Su imagen todavía se está difuminando: ningún vecino ve este reporte y no se puede gestionar hasta que se publique.',
+    notPublishedFailedHint:
+      'No pudimos difuminar su imagen y el reporte no llegó a publicarse. Su autor puede volver a cargarlo con otra foto.',
+    closureReviewHint:
+      'La comparación automática encontró dudas en el cierre. Es una sugerencia, no una determinación.',
     filters: {
       status: 'Estado',
       category: 'Categoría',
@@ -128,6 +150,8 @@ export const messages = {
       allStatuses: 'Todos los estados',
       allCategories: 'Todas las categorías',
       selected: (count: number) => `${count} seleccionados`,
+      review: 'Revisión',
+      closureReview: 'Solo cierres a revisar',
     },
     ordering: {
       newest: 'Más recientes',
@@ -359,6 +383,27 @@ export const messages = {
       `El vecino puede objetar el cierre hasta el ${date}`,
     objectionExpired: 'El plazo de objeción venció.',
     appealed: 'Este cierre fue objetado por el vecino y el reporte volvió a gestión.',
+    /** Comparación automática del antes y el después (US-015). */
+    comparison: {
+      title: 'Comparación automática',
+      disclaimer:
+        'Sugerencia automática, no una determinación: no cambia el estado del reporte ni el plazo de objeción.',
+      before: 'Foto del reporte',
+      after: 'Foto del cierre',
+      status: {
+        pendiente: 'Comparación en curso.',
+        completada: '',
+        no_disponible: 'Comparación no disponible.',
+        sin_material: 'No hay material suficiente para comparar.',
+      },
+      verdict: {
+        consistente: 'Resolución consistente',
+        problema_persistente: 'El problema sigue presente',
+        lugar_distinto: 'Las fotos no parecen del mismo lugar',
+        trabajo_incoherente: 'El cambio no coincide con lo declarado',
+      },
+      meta: (model: string, date: string) => `${model} · ${date}`,
+    },
     /** Rótulo de cada origen de transición en el historial (US-038). */
     origin: {
       manual: '',
@@ -369,6 +414,19 @@ export const messages = {
       apelacion_ciudadano: 'Objeción del vecino',
       archivado_inactividad: 'Archivado por inactividad',
     },
+    /** US-043: la foto se retiró, o el reporte está oculto mientras se revisa. */
+    photoRemoved: 'Imagen retirada por protección de datos',
+    withdrawn:
+      'Retirado de la app: su foto mostraba un dato personal y se eliminó. Ningún vecino lo ve, salvo su autor.',
+    underPrivacyReview:
+      'Oculto al público: hay una denuncia por un dato personal visible en la imagen. La resuelve el administrador de la plataforma.',
+    /** US-042: la imagen todavía no se difuminó, o no se pudo difuminar. */
+    photoProcessing: 'Procesando la imagen para difuminar rostros y patentes',
+    photoFailed: 'No pudimos procesar la imagen',
+    notPublishedYet:
+      'Sin publicar: su imagen se está difuminando. Ningún vecino lo ve todavía, y no se puede gestionar hasta que se publique.',
+    photoProcessingFailed:
+      'Sin publicar: no pudimos difuminar su imagen y el reporte no llegó a publicarse. Su autor puede volver a cargarlo con otra foto.',
     collectiveConfirmations: (count: number) =>
       count === 1 ? '1 confirmación' : `${count} confirmaciones`,
   },
@@ -441,6 +499,53 @@ export const messages = {
     cannotReactivate:
       'Su municipalidad está dada de baja. Volvé a darla de alta para poder reactivar a este validador.',
   },
+  /** Solicitudes por dato personal visible (US-043). */
+  privacy: {
+    title: 'Protección de datos',
+    description:
+      'Imágenes denunciadas por mostrar un rostro o una patente sin difuminar, de todas las municipalidades. El reporte está oculto al público hasta que decidas, y el plazo para hacerlo es de 24 horas desde la recepción.',
+    tabPending: 'Pendientes',
+    tabResolved: 'Resueltas',
+    emptyPending: 'No hay solicitudes esperando revisión.',
+    emptyResolved: 'Todavía no se resolvió ninguna solicitud.',
+    image: 'Imagen',
+    report: 'Reporte',
+    municipality: 'Municipalidad',
+    receivedAt: 'Recibida',
+    deadline: 'Plazo',
+    decision: 'Decisión',
+    resolvedAt: 'Resuelta',
+    resolvedBy: 'Resolvió',
+    reportNumber: (number: number | string) => `Reporte #${number}`,
+    reportPhoto: 'Foto del reporte',
+    evidencePhoto: 'Foto del cierre del operario',
+    appealPhoto: 'Foto de la objeción del vecino',
+    imageGone: 'Imagen no disponible',
+    overdue: 'Fuera de plazo',
+    withinDeadline: 'En plazo',
+    lateResolution: 'Fuera de plazo',
+    status: {
+      pendiente: 'Pendiente',
+      imagen_eliminada: 'Imagen eliminada',
+      desestimada: 'Desestimada',
+    },
+    removeImage: 'Eliminar imagen',
+    dismiss: 'Desestimar',
+    removeTitle: '¿Eliminar la imagen definitivamente?',
+    removeDescription:
+      'El archivo se borra del servidor y no se puede recuperar. Si es la foto del reporte, el reporte se retira de la app para siempre: un reporte sin foto no se vuelve a publicar. Si es la foto de un cierre, el reporte sigue publicado con la suya. Se le avisa al autor el motivo.',
+    removeConfirm: 'Eliminar para siempre',
+    dismissTitle: '¿Desestimar la solicitud?',
+    dismissDescription:
+      'La imagen queda como está y el reporte vuelve a verse de inmediato. La decisión queda registrada con tu usuario.',
+    dismissConfirm: 'Desestimar',
+    removedReport: 'La imagen se eliminó y el reporte quedó retirado de la app.',
+    removedEvidence: 'La foto del cierre se eliminó; el reporte sigue publicado.',
+    removedAppeal: 'La foto de la objeción se eliminó; el reporte sigue publicado.',
+    dismissed: 'Solicitud desestimada: el reporte volvió a publicarse.',
+    alreadyResolved: 'Otra persona ya resolvió esta solicitud.',
+    openReport: 'Ver reporte',
+  },
   agents: {
     title: 'Agentes municipales',
     description:
@@ -509,6 +614,10 @@ export const messages = {
     network: 'No pudimos comunicarnos con el servidor.',
     notFound: 'No encontramos lo que buscabas.',
     forbidden: 'No tenés permisos para realizar esta acción.',
+    // Sprint 5, punto 5.1: allauth lo manda en inglés y sin el tiempo de
+    // espera; no dice si la cuenta existe, y este texto tampoco.
+    tooManyRequests:
+      'Hiciste demasiados intentos seguidos. Esperá unos minutos y probá de nuevo.',
   },
   forbidden: {
     title: 'Permisos insuficientes',
